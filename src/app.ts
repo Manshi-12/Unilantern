@@ -4,41 +4,67 @@ import express, {
   type Request,
   type Response,
 } from "express";
+import { ZodError } from "zod";
+
+import { requestId } from "./shared/middleware/request-id.js";
+import { sendSuccess } from "./shared/response/success.js";
+import { sendError } from "./shared/response/error.js";
+import { AppError } from "./shared/errors/app-error.js";
+import { buildZodDetails } from "./shared/errors/validation-error.js";
+import { AuthErrorCode } from "./shared/response/error-codes.js";
+import { HttpStatus } from "./shared/response/http-status.js";
+
+import studentAuthRouter from "./modules/auth/student/student.routes.js";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
+app.use(requestId);
 
 app.get("/", (_req: Request, res: Response) => {
-  res.status(200).json({
-    message: "Welcome to UniLantern",
-  });
+  sendSuccess(res, { message: "Welcome to UniLantern" });
 });
 
 app.get("/health", (_req: Request, res: Response) => {
-  res.status(200).json({
+  sendSuccess(res, {
     status: "ok",
     service: "unilantern-backend",
     timestamp: new Date().toISOString(),
   });
 });
 
+app.use("/auth/student", studentAuthRouter);
+
 app.use((_req: Request, res: Response) => {
-  res.status(404).json({
-    error: "NOT_FOUND",
-    message: "Route not found",
-  });
+  sendError(res, "NOT_FOUND", "Route not found", HttpStatus.NOT_FOUND);
 });
 
-app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error(error);
-
-  res.status(500).json({
-    error: "INTERNAL_SERVER_ERROR",
-    message: "Something went wrong",
-  });
-});
+app.use(
+  (err: unknown, _req: Request, res: Response, _next: NextFunction): void => {
+    if (err instanceof ZodError) {
+      sendError(
+        res,
+        AuthErrorCode.VALIDATION_ERROR,
+        "Validation failed",
+        HttpStatus.UNPROCESSABLE_ENTITY,
+        buildZodDetails(err),
+      );
+      return;
+    }
+    if (err instanceof AppError) {
+      sendError(res, err.code, err.message, err.statusCode, err.details);
+      return;
+    }
+    console.error("[unhandled]", err);
+    sendError(
+      res,
+      AuthErrorCode.INTERNAL_ERROR,
+      "An unexpected error occurred",
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  },
+);
 
 export default app;
