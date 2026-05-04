@@ -6,6 +6,8 @@ import express, {
 } from "express";
 import { ZodError } from "zod";
 import studentAuthRouter from "./modules/auth/student/student.routes.js";
+import studentProfileRouter from "./modules/auth/student/student.profile.routes.js";
+import studentExtracurricularRouter from "./modules/auth/student/student.extracurricular.routes.js";
 import { AuthError } from "./shared/errors/auth-error.js";
 import { ConflictError } from "./shared/errors/conflict-error.js";
 import { RateLimitError } from "./shared/errors/rate-limit-error.js";
@@ -17,6 +19,8 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/v1/auth/student", studentAuthRouter);
+app.use("/api/v1", studentProfileRouter);
+app.use("/api/v1", studentExtracurricularRouter);
 
 app.get("/", (_req: Request, res: Response) => {
   res.status(200).json({

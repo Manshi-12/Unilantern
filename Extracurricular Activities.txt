@@ -1,0 +1,153 @@
+Module 4 — Extracurricular Activities
+Manages extracurricular activity entries. Unlimited activities allowed. Scoring uses depth-first model with diminishing
+returns on top 10. hours_per_week is accepted and stored internally but NEVER returned in any student-facing
+response.
+4.1 List Extracurricular Activities
+GET /students/me/extracurriculars
+Middleware: rateLimiter → verifyJWT → requireRole(student) → auditLogger
+Auth: Bearer JWT | Rate Limit: 120 per user per minute
+Parameter Type Required Description
+limit integer Optional Max items per page. Default 50, max 100.
+cursor string Optional Pagination cursor from previous response
+Success Response — 200 OK
+Field Type Description
+data[].ec_id integer Activity identifier
+data[].activity_name string Activity display name
+data[].activity_type string club | sport | job | family | project | research | other
+data[].years_involved string less_than_1 | 1 | 2 | 3 | 4_plus
+data[].involvement_leve
+l
+string explored | consistent | key_contributor | leader_founder
+data[].impact_level string participation_only | contributed | measurable | created_scaled
+data[].description string Student-written description — max 300 chars
+data[].impact_statement string Student impact statement — max 200 chars
+data[].display_order integer Sort order within list
+data[].updated_at string ISO 8601 timestamp
+next_cursor string|null Pagination cursor
+has_more boolean Additional pages exist
+■ hours_per_week is stored in the database but NEVER returned in this or any student-facing API response.
+4.2 Add Extracurricular Activity
+POST /students/me/extracurriculars
+Creates a new activity entry. Triggers async score recalculation. hours_per_week is required and stored internally for
+scoring but never returned in responses.
+Middleware: rateLimiter → verifyJWT → requireRole(student) → auditLogger → scoreRecalc | Audit:
+profile_update
+Auth: Bearer JWT | Rate Limit: 30 per user per minute
+Field Type Required Description
+activity_name string Required Activity name — max 200 chars
+activity_type string Required club | sport | job | family | project | research | other
+years_involved string Required less_than_1 | 1 | 2 | 3 | 4_plus
+involvement_level string Required explored | consistent | key_contributor | leader_founder
+hours_per_week string Required under_2 | 2_to_5 | 6_to_10 | 11_to_20 | 20_plus — stored
+internally, NEVER returned
+impact_level string Required participation_only | contributed | measurable | created_scaled
+description string Required What student did — max 300 chars
+impact_statement string Required What changed due to involvement — max 200 chars
+experience_duration_wee
+ks
+integer Optional 1-52. For ongoing activities use 52.
+selective_acceptance_to
+ggle
+boolean Optional true if activity required competitive selection
+external_org_toggle boolean Optional true if external institution/company involved
+travel_or_residency_tog
+gle
+boolean Optional true if required travel/immersion/residency
+people_impacted integer Optional Outcome field — number of people impacted
+funds_raised integer Optional Outcome field in USD
+users_acquired integer Optional Outcome field — users/members acquired
+hours_delivered integer Optional Teaching/mentoring/service hours delivered
+competition_top_10_perc
+ent_toggle
+boolean Optional true if placed in top 10%
+finalist_or_winner_togg
+le
+boolean Optional true if finalist or winner
+publication_or_presente
+d_toggle
+boolean Optional true if published or formally presented
+policy_or_partnership_t
+oggle
+boolean Optional true if documented partnership/adoption
+structured_deliverable_
+toggle
+boolean Optional true if produced a structured deliverable
+language_or_skill_cert_
+toggle
+boolean Optional true if formal certification/exam obtained
+formal_selection_toggle boolean Optional true if formally selected/nominated/invited
+documented_real_world_o
+utput_toggle
+boolean Optional true if work product used outside student group
+Success Response — 200 OK
+Field Type Description
+ec_id integer Newly created activity ID
+activity_name string Saved activity name
+display_order integer Assigned sort position
+score_recalc_queued boolean true — recalculation always enqueued on create
+created_at string ISO 8601 timestamp
+HTTP Status Error Code Cause
+400 DESCRIPTION_TOO_LONG description exceeds 300 character limit
+400 IMPACT_STATEMENT_TOO_LO
+NG
+impact_statement exceeds 200 character limit
+400 VALIDATION_ERROR Required field missing or invalid
+401 TOKEN_INVALID JWT missing, expired, or malformed
+429 RATE_LIMIT_EXCEEDED Too many requests
+500 INTERNAL_ERROR Unexpected server error
+4.3 Get Single Extracurricular Activity
+GET /students/me/extracurriculars/:ec_id
+Returns full details for one extracurricular activity owned by the student. Used to populate edit form.
+Middleware: rateLimiter → verifyJWT → requireRole(student) → auditLogger
+Auth: Bearer JWT | Rate Limit: 120 per user per minute
+Parameter Type Description
+ec_id integer Extracurricular activity ID
+HTTP Status Error Code Cause
+404 NOT_FOUND Activity does not exist or belongs to another student
+401 TOKEN_INVALID JWT missing, expired, or malformed
+429 RATE_LIMIT_EXCEEDED Too many requests
+4.4 Update Extracurricular Activity
+PUT /students/me/extracurriculars/:ec_id
+Full update of an existing activity. Send only fields to change. Triggers async score recalculation.
+Middleware: rateLimiter → verifyJWT → requireRole(student) → auditLogger → scoreRecalc | Audit:
+profile_update
+Auth: Bearer JWT | Rate Limit: 30 per user per minute
+Parameter Type Description
+ec_id integer Extracurricular activity ID to update
+Request body: same optional fields as POST — activity_name, activity_type, years_involved, involvement_level,
+hours_per_week, impact_level, description, impact_statement, and all toggle fields. All optional.
+HTTP Status Error Code Cause
+400 VALIDATION_ERROR Invalid field value
+401 TOKEN_INVALID JWT missing, expired, or malformed
+404 NOT_FOUND Activity does not exist or belongs to another student
+429 RATE_LIMIT_EXCEEDED Too many requests
+4.5 Delete Extracurricular Activity
+DELETE /students/me/extracurriculars/:ec_id
+Permanently deletes an activity. Triggers async score recalculation. Cannot be undone.
+Middleware: rateLimiter → verifyJWT → requireRole(student) → auditLogger → scoreRecalc | Audit:
+profile_update
+Auth: Bearer JWT | Rate Limit: 30 per user per minute
+Parameter Type Description
+ec_id integer Extracurricular activity ID to delete
+Field Type Description
+deleted boolean Always true on success
+score_recalc_queued boolean Recalculation status
+HTTP Status Error Code Cause
+404 NOT_FOUND Activity not found or belongs to another student
+401 TOKEN_INVALID JWT error
+429 RATE_LIMIT_EXCEEDED Too many requests
+4.6 Reorder Extracurricular Activities
+PATCH /students/me/extracurriculars/reorder
+Updates display_order for multiple activities in one atomic operation. Does NOT trigger score recalculation — order does
+not affect scoring.
+Middleware: rateLimiter → verifyJWT → requireRole(student) → auditLogger
+Auth: Bearer JWT | Rate Limit: 30 per user per minute
+Field Type Required Description
+order array[object] Required Array of { ec_id: integer, display_order: integer } objects
+Field Type Description
+reordered boolean true on success
+updated_count integer Number of activities reordered
+HTTP Status Error Code Cause
+400 INVALID_EC_IDS One or more ec_id values do not belong to this student
+401 TOKEN_INVALID JWT error
+429 RATE_LIMIT_EXCEEDED Too many requests

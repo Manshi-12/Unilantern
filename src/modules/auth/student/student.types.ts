@@ -14,6 +14,119 @@ export interface StudentRecord {
   updated_at: Date;
 }
 
+export interface StudentProfileRecord {
+  student_id: number;
+  school_id: number | null;
+  full_name: string;
+  account_status: "independent" | "school_linked";
+  grade: number | null;
+  graduation_year: number;
+  high_school_name: string | null;
+  state_of_residence: string | null;
+  profile_complete: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface UpdateStudentProfileData {
+  grade?: number;
+  graduation_year?: number;
+  high_school_name?: string;
+  state_of_residence?: string;
+}
+
+export interface ExtracurricularRecord {
+  activity_id: number;
+  student_id: number;
+  activity_name: string;
+  activity_type: 'club' | 'sport' | 'job' | 'family' | 'project' | 'research' | 'other';
+  years_involved: 'less_than_1' | '1' | '2' | '3' | '4_plus';
+  involvement_level: 'explored' | 'consistent' | 'key_contributor' | 'leader_founder';
+  activity_description: string;
+  impact_text: string;
+  impact_level: 'participation_only' | 'contributed' | 'measurable' | 'created_scaled';
+  display_order: number;
+  hours_per_week: 'under_2' | '2_to_5' | '6_to_10' | '11_to_20' | '20_plus';
+  experience_duration_weeks: number | null;
+  selective_acceptance_toggle: boolean;
+  external_org_toggle: boolean;
+  travel_or_residency_toggle: boolean;
+  people_impacted: number;
+  funds_raised: number;
+  users_acquired: number;
+  hours_delivered: number;
+  competition_top_10_pct_toggle: boolean;
+  finalist_or_winner_toggle: boolean;
+  publication_or_presented_toggle: boolean;
+  policy_or_partnership_toggle: boolean;
+  structured_deliverable_toggle: boolean;
+  language_or_skill_cert_toggle: boolean;
+  documented_real_world_output: boolean;
+  formal_selection_toggle: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface CreateExtracurricularData {
+  student_id: number;
+  activity_name: string;
+  activity_type: 'club' | 'sport' | 'job' | 'family' | 'project' | 'research' | 'other';
+  years_involved: 'less_than_1' | '1' | '2' | '3' | '4_plus';
+  involvement_level: 'explored' | 'consistent' | 'key_contributor' | 'leader_founder';
+  activity_description: string;
+  impact_text: string;
+  impact_level: 'participation_only' | 'contributed' | 'measurable' | 'created_scaled';
+  hours_per_week: 'under_2' | '2_to_5' | '6_to_10' | '11_to_20' | '20_plus';
+  experience_duration_weeks?: number;
+  selective_acceptance_toggle?: boolean;
+  external_org_toggle?: boolean;
+  travel_or_residency_toggle?: boolean;
+  people_impacted?: number;
+  funds_raised?: number;
+  users_acquired?: number;
+  hours_delivered?: number;
+  competition_top_10_pct_toggle?: boolean;
+  finalist_or_winner_toggle?: boolean;
+  publication_or_presented_toggle?: boolean;
+  policy_or_partnership_toggle?: boolean;
+  structured_deliverable_toggle?: boolean;
+  language_or_skill_cert_toggle?: boolean;
+  formal_selection_toggle?: boolean;
+  documented_real_world_output_toggle?: boolean;
+}
+
+export interface UpdateExtracurricularData {
+  activity_name?: string;
+  activity_type?: 'club' | 'sport' | 'job' | 'family' | 'project' | 'research' | 'other';
+  years_involved?: 'less_than_1' | '1' | '2' | '3' | '4_plus';
+  involvement_level?: 'explored' | 'consistent' | 'key_contributor' | 'leader_founder';
+  activity_description?: string;
+  impact_text?: string;
+  impact_level?: 'participation_only' | 'contributed' | 'measurable' | 'created_scaled';
+  hours_per_week?: 'under_2' | '2_to_5' | '6_to_10' | '11_to_20' | '20_plus';
+  experience_duration_weeks?: number;
+  selective_acceptance_toggle?: boolean;
+  external_org_toggle?: boolean;
+  travel_or_residency_toggle?: boolean;
+  people_impacted?: number;
+  funds_raised?: number;
+  users_acquired?: number;
+  hours_delivered?: number;
+  competition_top_10_pct_toggle?: boolean;
+  finalist_or_winner_toggle?: boolean;
+  publication_or_presented_toggle?: boolean;
+  policy_or_partnership_toggle?: boolean;
+  structured_deliverable_toggle?: boolean;
+  language_or_skill_cert_toggle?: boolean;
+  formal_selection_toggle?: boolean;
+  documented_real_world_output_toggle?: boolean;
+}
+
+export interface ExtracurricularReorderData {
+  activity_id: number;
+  display_order: number;
+}
+
 export interface OtpRecord {
   otp_id: number;
   phone_number: string;

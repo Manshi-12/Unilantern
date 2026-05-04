@@ -11,6 +11,8 @@ const envSchema = z.object({
   JWT_ACCESS_TTL: z.string().default("15m"),
 
   OTP_TTL_SECONDS: z.coerce.number().default(600),
+  REDIS_URL: z.string().optional().default(""),
+  DOB_ENCRYPTION_KEY: z.string().optional().default(""),
 });
 
 export type Env = z.infer<typeof envSchema>;
