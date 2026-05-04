@@ -18,6 +18,7 @@ type RawStudentRow = {
   is_active: boolean;
   phone_number: string;
   phone_verified: boolean;
+  email: string | null;
   full_name: string;
   invite_token_used: string | null;
   last_login_at: Date | null;
@@ -57,6 +58,18 @@ export class StudentRepository {
     return row ? mapStudent(row) : null;
   }
 
+  async findByEmail(email: string): Promise<StudentRecord | null> {
+    const pool = await getPool();
+    const result = await pool
+      .request()
+      .input("email", sql.VarChar(320), email)
+      .query<RawStudentRow>(
+        `SELECT TOP 1 * FROM ${STUDENTS_TABLE} WHERE email = @email`,
+      );
+    const row = result.recordset[0];
+    return row ? mapStudent(row) : null;
+  }
+
   async createStudent(data: CreateStudentData): Promise<StudentRecord> {
     const pool = await getPool();
 
@@ -64,6 +77,7 @@ export class StudentRepository {
     const result = await pool
       .request()
       .input("phone_number", sql.VarChar(25), data.phone_number)
+      .input("email", sql.VarChar(320), data.email)
       .input("full_name", sql.VarChar(200), data.full_name)
       .input("is_active", sql.Bit, data.is_active)
       .input("phone_verified", sql.Bit, data.phone_verified)
@@ -72,10 +86,10 @@ export class StudentRepository {
       .input("invite_token_used", sql.VarChar(500), data.invite_token_used)
       .query<RawStudentRow>(
         `INSERT INTO ${STUDENTS_TABLE}
-          (phone_number, full_name, is_active, phone_verified, account_status, school_id, invite_token_used)
+          (phone_number, email, full_name, is_active, phone_verified, account_status, school_id, invite_token_used)
          OUTPUT INSERTED.*
          VALUES
-          (@phone_number, @full_name, @is_active, @phone_verified, @account_status, @school_id, @invite_token_used);`,
+          (@phone_number, @email, @full_name, @is_active, @phone_verified, @account_status, @school_id, @invite_token_used);`,
       );
     const row = result.recordset[0];
     if (!row) throw new Error("Failed to insert student row");

@@ -18,6 +18,7 @@ export const studentsColumns = {
   is_active: "is_active",
   phone_number: "phone_number",
   phone_verified: "phone_verified",
+  email: "email",
   full_name: "full_name",
   invite_token_used: "invite_token_used",
   last_login_at: "last_login_at",
@@ -38,11 +39,39 @@ BEGIN
     is_active         BIT NOT NULL DEFAULT 1,
     phone_number      VARCHAR(25) NOT NULL UNIQUE,
     phone_verified    BIT NOT NULL DEFAULT 0,
+    email             VARCHAR(320) NULL,
     full_name         VARCHAR(200) NOT NULL,
     invite_token_used VARCHAR(500) NULL,
     last_login_at     DATETIMEOFFSET NULL,
     created_at        DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET(),
     updated_at        DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET()
   );
+
+END;
+
+IF COL_LENGTH('dbo.students', 'email') IS NULL
+BEGIN
+  ALTER TABLE dbo.students ADD email VARCHAR(320) NULL;
+END;
+ELSE IF EXISTS (
+  SELECT 1
+  FROM sys.columns
+  WHERE object_id = OBJECT_ID('dbo.students')
+    AND name = 'email'
+    AND max_length < 320
+)
+BEGIN
+  ALTER TABLE dbo.students ALTER COLUMN email VARCHAR(320) NULL;
+END;
+
+IF NOT EXISTS (
+  SELECT 1 FROM sys.indexes
+  WHERE object_id = OBJECT_ID('dbo.students')
+    AND name = 'uidx_students_email'
+)
+BEGIN
+  CREATE UNIQUE INDEX uidx_students_email
+    ON dbo.students(email)
+    WHERE email IS NOT NULL;
 END;
 `;

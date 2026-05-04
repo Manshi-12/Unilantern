@@ -1,5 +1,6 @@
 export interface StudentRegisterInitDto {
   phone_number: string;
+  email: string;
   full_name: string;
   graduation_year: number;
   date_of_birth: string;

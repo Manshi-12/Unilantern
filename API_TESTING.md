@@ -30,6 +30,7 @@ Submit all details upfront. Backend validates, stores temporarily, sends OTP to 
 ```json
 {
   "phone_number": "+12125551234",
+  "email": "john.doe@example.com",
   "full_name": "John Doe",
   "graduation_year": 2026,
   "date_of_birth": "2005-03-20",
@@ -45,6 +46,7 @@ Submit all details upfront. Backend validates, stores temporarily, sends OTP to 
 ```json
 {
   "phone_number": "+12125551234",
+  "email": "jane.minor@example.com",
   "full_name": "Jane Minor",
   "graduation_year": 2027,
   "date_of_birth": "2010-06-15",
@@ -74,6 +76,7 @@ Submit all details upfront. Backend validates, stores temporarily, sends OTP to 
 | HTTP | error | Cause |
 |---|---|---|
 | `409` | `PHONE_ALREADY_REGISTERED` | Phone already has an account |
+| `409` | `EMAIL_ALREADY_REGISTERED` | Email already has an account |
 | `403` | `AGE_GATE_FAILED` | DOB makes student under 13 |
 | `400` | `AGE_CONFIRMATION_REQUIRED` | `confirms_age_13_plus` is false |
 | `403` | `PARENTAL_CONSENT_REQUIRED` | Age 13–17 but `confirms_parental_permission` is false |
@@ -100,6 +103,7 @@ Submit all details upfront. Backend validates, stores temporarily, sends OTP to 
   "role": "student",
   "account_status": "independent",
   "school_id": null,
+  "email": "john.doe@example.com",
   "full_name": "John Doe"
 }
 ```
@@ -111,6 +115,7 @@ Submit all details upfront. Backend validates, stores temporarily, sends OTP to 
 role           = 'student'     ← always fixed by DB CHECK constraint
 is_active      = 1             ← auto
 phone_verified = 1             ← auto (OTP verified)
+email          = from Step 1
 account_status = 'independent' ← 'school_linked' if invite_token provided
 created_at     = now()
 updated_at     = now()
@@ -193,6 +198,7 @@ consent_type='college'        status='granted'|'revoked' source='signup'
   "role": "student",
   "account_status": "independent",
   "school_id": null,
+  "email": "john.doe@example.com",
   "full_name": "John Doe"
 }
 ```
@@ -213,6 +219,7 @@ consent_type='college'        status='granted'|'revoked' source='signup'
 | Field | Rule |
 |---|---|
 | `phone_number` | E.164 format — starts with `+`, e.g. `+12125551234` |
+| `email` | Valid email address, lowercased by backend, max 320 chars |
 | `otp_code` | Exactly 6 digits as string, e.g. `"492817"` |
 | `full_name` | 1–200 chars |
 | `graduation_year` | Integer, 2026–2032 |

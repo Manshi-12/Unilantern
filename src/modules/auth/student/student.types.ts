@@ -6,6 +6,7 @@ export interface StudentRecord {
   is_active: boolean;
   phone_number: string;
   phone_verified: boolean;
+  email: string | null;
   full_name: string;
   invite_token_used: string | null;
   last_login_at: Date | null;
@@ -26,6 +27,7 @@ export interface OtpRecord {
 
 export interface CreateStudentData {
   phone_number: string;
+  email: string;
   full_name: string;
   is_active: boolean;
   phone_verified: boolean;

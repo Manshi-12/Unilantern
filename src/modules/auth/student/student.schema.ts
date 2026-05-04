@@ -8,6 +8,13 @@ const phoneNumber = z
   .string()
   .regex(phoneRegex, "Invalid E.164 format (e.g. +12125551234)");
 
+const emailAddress = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email("Invalid email address")
+  .max(320, "Email must be 320 characters or fewer");
+
 const otpCode = z
   .string()
   .regex(otpRegex, "OTP must be a 6-digit numeric string");
@@ -16,6 +23,7 @@ const currentYear = new Date().getUTCFullYear();
 
 export const registerInitSchema = z.object({
   phone_number: phoneNumber,
+  email: emailAddress,
   full_name: z.string().trim().min(1, "Full name is required").max(200),
   graduation_year: z
     .number()

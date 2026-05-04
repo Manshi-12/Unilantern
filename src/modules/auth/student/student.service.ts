@@ -22,6 +22,7 @@ import type { OtpRecord, StudentRecord } from "./student.types.js";
 
 // Pending registrations: phone → profile data, expires after OTP window
 interface PendingRegistration {
+  email: string;
   full_name: string;
   graduation_year: number;
   date_of_birth: string;
@@ -46,12 +47,21 @@ export class StudentService {
   // Accept all profile data, validate it, store temporarily, send OTP
   async registerInit(dto: StudentRegisterInitDto): Promise<StudentRegisterInitResponseDto> {
     const phone = normalizePhone(dto.phone_number);
+    const email = normalizeEmail(dto.email);
 
     const existing = await this.studentRepo.findByPhone(phone);
     if (existing) {
       throw new ConflictError(
         AuthErrorCode.PHONE_ALREADY_REGISTERED,
         "Phone number is already registered",
+      );
+    }
+
+    const existingEmail = await this.studentRepo.findByEmail(email);
+    if (existingEmail) {
+      throw new ConflictError(
+        AuthErrorCode.EMAIL_ALREADY_REGISTERED,
+        "Email address is already registered",
       );
     }
 
@@ -68,6 +78,7 @@ export class StudentService {
 
     // Store profile data temporarily until OTP is verified
     pendingRegistrations.set(phone, {
+      email,
       full_name: dto.full_name.trim(),
       graduation_year: dto.graduation_year,
       date_of_birth: dto.date_of_birth,
@@ -115,10 +126,16 @@ export class StudentService {
       throw new ConflictError(AuthErrorCode.PHONE_ALREADY_REGISTERED, "Phone number is already registered");
     }
 
+    const existingEmail = await this.studentRepo.findByEmail(pending.email);
+    if (existingEmail) {
+      throw new ConflictError(AuthErrorCode.EMAIL_ALREADY_REGISTERED, "Email address is already registered");
+    }
+
     const inviteResolution = await this.resolveInviteToken(pending.invite_token);
 
     const created = await this.studentRepo.createStudent({
       phone_number: phone,
+      email: pending.email,
       full_name: pending.full_name,
       is_active: true,
       phone_verified: true,
@@ -229,6 +246,7 @@ export class StudentService {
       role: "student",
       account_status: student.account_status,
       school_id: student.school_id != null ? String(student.school_id) : null,
+      email: student.email,
       full_name: student.full_name,
     };
   }
@@ -237,4 +255,8 @@ export class StudentService {
     // STUB: replace with Twilio/SMS provider in production
     console.log(`[otp:dev] phone=${phone} code=${code}`);
   }
+}
+
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
 }

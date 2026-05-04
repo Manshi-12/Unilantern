@@ -10,5 +10,6 @@ export interface StudentAuthResponseDto {
   role: "student";
   account_status: "independent" | "school_linked";
   school_id: string | null;
+  email: string | null;
   full_name: string;
 }

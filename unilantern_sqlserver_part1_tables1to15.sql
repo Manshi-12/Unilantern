@@ -174,6 +174,9 @@ CREATE TABLE students (
     -- ── Display ───────────────────────────────────────────────────────────────
     full_name               VARCHAR(200)        NOT NULL,
 
+    -- ── Contact email (collected during registration; login remains phone + OTP) ─
+    email                   VARCHAR(320)        NULL,
+
     -- ── Onboarding tracking ───────────────────────────────────────────────────
     invite_token_used       VARCHAR(500)        NULL,       -- token string used at sign-up
     last_login_at           DATETIMEOFFSET      NULL,
@@ -197,6 +200,10 @@ CREATE INDEX idx_students_status
 CREATE INDEX idx_students_last_login
     ON students (last_login_at DESC)
     WHERE last_login_at IS NOT NULL;
+
+CREATE UNIQUE INDEX uidx_students_email
+    ON students (email)
+    WHERE email IS NOT NULL;
 GO
 
 CREATE TRIGGER trg_students_upd
