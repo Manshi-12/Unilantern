@@ -1,5 +1,4 @@
 import type { Request, Response, NextFunction, RequestHandler } from "express";
-import { getRedis } from "./redis.js";
 import { RateLimitError } from "../errors/rate-limit-error.js";
 
 type IdentifierSource = "phone_number" | "ip";
@@ -7,6 +6,13 @@ type IdentifierSource = "phone_number" | "ip";
 export interface RateLimiterOptions {
   identifier?: IdentifierSource;
 }
+
+interface RateEntry {
+  count: number;
+  expiresAt: number;
+}
+
+const store = new Map<string, RateEntry>();
 
 export function rateLimiter(
   action: string,
@@ -17,20 +23,28 @@ export function rateLimiter(
   const identifierSource: IdentifierSource = options.identifier
     ?? (action.startsWith("otp_") ? "phone_number" : "ip");
 
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     try {
       const identifier = resolveIdentifier(req, identifierSource);
       if (!identifier) {
-        // Without an identifier, skip rate limiting (validation will catch missing fields).
         return next();
       }
 
       const key = `rate:${action}:${identifier}`;
-      const redis = getRedis();
+      const now = Date.now();
+      const entry = store.get(key);
 
-      const count = await redis.incr(key);
-      if (count === 1) {
-        await redis.expire(key, windowSeconds);
+      let count: number;
+      let expiresAt: number;
+
+      if (!entry || now >= entry.expiresAt) {
+        count = 1;
+        expiresAt = now + windowSeconds * 1000;
+        store.set(key, { count, expiresAt });
+      } else {
+        entry.count += 1;
+        count = entry.count;
+        expiresAt = entry.expiresAt;
       }
 
       const remaining = Math.max(0, limit - count);
@@ -38,7 +52,7 @@ export function rateLimiter(
       res.setHeader("X-RateLimit-Remaining", String(remaining));
 
       if (count > limit) {
-        const ttl = await redis.ttl(key);
+        const ttl = Math.ceil((expiresAt - now) / 1000);
         if (ttl > 0) res.setHeader("Retry-After", String(ttl));
         throw new RateLimitError(
           `Rate limit exceeded for ${action}`,

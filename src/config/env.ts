@@ -6,16 +6,11 @@ const envSchema = z.object({
   HOST: z.string().default("127.0.0.1"),
 
   DATABASE_URL: z.string().min(1),
-  REDIS_URL: z.string().min(1),
 
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 chars"),
   JWT_ACCESS_TTL: z.string().default("15m"),
 
   OTP_TTL_SECONDS: z.coerce.number().default(600),
-
-  DOB_ENCRYPTION_KEY: z
-    .string()
-    .min(64, "DOB_ENCRYPTION_KEY must be a 64-char hex string (32 bytes)"),
 });
 
 export type Env = z.infer<typeof envSchema>;

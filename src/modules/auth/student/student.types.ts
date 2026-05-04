@@ -32,6 +32,15 @@ export interface CreateStudentData {
   account_status: "independent" | "school_linked";
   school_id: number | null;
   invite_token_used: string | null;
+  // profile fields
+  graduation_year: number;
+  date_of_birth: string;
+  high_school_name: string;
+  state_of_residence: string;
+  // consent flags
+  confirms_age_13_plus: boolean;
+  confirms_parental_permission: boolean;
+  college_data_share: boolean;
 }
 
 export interface CreateOtpData {

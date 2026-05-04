@@ -1,17 +1,5 @@
-export interface StudentSendOtpRequestDto {
+export interface StudentRegisterInitDto {
   phone_number: string;
-  purpose: "signup" | "login";
-}
-
-export interface StudentVerifyOtpRequestDto {
-  phone_number: string;
-  otp_code: string;
-  purpose: "signup" | "login";
-}
-
-export interface StudentRegisterRequestDto {
-  phone_number: string;
-  otp_code: string;
   full_name: string;
   graduation_year: number;
   date_of_birth: string;
@@ -23,7 +11,16 @@ export interface StudentRegisterRequestDto {
   college_data_share?: boolean;
 }
 
-export interface StudentLoginRequestDto {
+export interface StudentRegisterVerifyDto {
+  phone_number: string;
+  otp_code: string;
+}
+
+export interface StudentLoginSendOtpDto {
+  phone_number: string;
+}
+
+export interface StudentLoginVerifyDto {
   phone_number: string;
   otp_code: string;
 }

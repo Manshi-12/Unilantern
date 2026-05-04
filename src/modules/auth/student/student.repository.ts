@@ -1,11 +1,8 @@
-import sql from "mssql";
-import { getPool } from "../../../db/client.js";
-import {
-  STUDENTS_TABLE,
-} from "../../../db/schema/students.js";
-import {
-  OTP_VERIFICATIONS_TABLE,
-} from "../../../db/schema/otp-verifications.js";
+import { sql, getPool } from "../../../db/client.js";
+import { STUDENTS_TABLE } from "../../../db/schema/students.js";
+import { OTP_VERIFICATIONS_TABLE } from "../../../db/schema/otp-verifications.js";
+import { STUDENT_PROFILES_TABLE } from "../../../db/schema/student-profiles.js";
+import { STUDENT_CONSENTS_TABLE } from "../../../db/schema/student-consents.js";
 import type {
   CreateOtpData,
   CreateStudentData,
@@ -62,13 +59,15 @@ export class StudentRepository {
 
   async createStudent(data: CreateStudentData): Promise<StudentRecord> {
     const pool = await getPool();
+
+    // Insert student row
     const result = await pool
       .request()
       .input("phone_number", sql.VarChar(25), data.phone_number)
       .input("full_name", sql.VarChar(200), data.full_name)
       .input("is_active", sql.Bit, data.is_active)
       .input("phone_verified", sql.Bit, data.phone_verified)
-      .input("account_status", sql.VarChar(30), data.account_status)
+      .input("account_status", sql.VarChar(15), data.account_status)
       .input("school_id", sql.Int, data.school_id)
       .input("invite_token_used", sql.VarChar(500), data.invite_token_used)
       .query<RawStudentRow>(
@@ -80,7 +79,45 @@ export class StudentRepository {
       );
     const row = result.recordset[0];
     if (!row) throw new Error("Failed to insert student row");
-    return mapStudent(row);
+    const student = mapStudent(row);
+
+    // Insert student_profile row — graduation_year, DOB, school info
+    await pool
+      .request()
+      .input("student_id", sql.Int, student.student_id)
+      .input("graduation_year", sql.SmallInt, data.graduation_year)
+      .input("date_of_birth", sql.Date, data.date_of_birth)
+      .input("high_school_name", sql.VarChar(300), data.high_school_name)
+      .input("state_of_residence", sql.VarChar(100), data.state_of_residence)
+      .query(
+        `INSERT INTO ${STUDENT_PROFILES_TABLE}
+          (student_id, graduation_year, date_of_birth, high_school_name, state_of_residence)
+         VALUES
+          (@student_id, @graduation_year, @date_of_birth, @high_school_name, @state_of_residence);`,
+      );
+
+    // Insert consent rows derived from registration flags
+    const consents: { type: string; status: string }[] = [
+      { type: "age_13plus", status: data.confirms_age_13_plus ? "granted" : "revoked" },
+      { type: "parental_13_17", status: data.confirms_parental_permission ? "granted" : "revoked" },
+      { type: "college", status: data.college_data_share ? "granted" : "revoked" },
+    ];
+
+    for (const c of consents) {
+      await pool
+        .request()
+        .input("student_id", sql.Int, student.student_id)
+        .input("consent_type", sql.VarChar(60), c.type)
+        .input("status", sql.VarChar(20), c.status)
+        .query(
+          `INSERT INTO ${STUDENT_CONSENTS_TABLE}
+            (student_id, consent_type, status, source)
+           VALUES
+            (@student_id, @consent_type, @status, 'signup');`,
+        );
+    }
+
+    return student;
   }
 
   async updateLastLogin(studentId: number): Promise<void> {

@@ -2,66 +2,50 @@ import type { NextFunction, Request, Response } from "express";
 import { sendSuccess } from "../../../shared/response/success.js";
 import { HttpStatus } from "../../../shared/response/http-status.js";
 import {
-  loginSchema,
-  registerSchema,
-  sendOtpSchema,
-  verifyOtpSchema,
+  registerInitSchema,
+  registerVerifySchema,
+  loginSendOtpSchema,
+  loginVerifySchema,
 } from "./student.schema.js";
 import type { StudentService } from "./student.service.js";
 
 export class StudentController {
   constructor(private readonly studentService: StudentService) {}
 
-  sendOtp = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
+  registerInit = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const dto = sendOtpSchema.parse(req.body);
-      const result = await this.studentService.sendOtp(dto);
+      const dto = registerInitSchema.parse(req.body);
+      const result = await this.studentService.registerInit(dto);
       sendSuccess(res, result, HttpStatus.OK);
     } catch (err) {
       next(err);
     }
   };
 
-  verifyOtp = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
+  registerVerify = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const dto = verifyOtpSchema.parse(req.body);
-      const result = await this.studentService.verifyOtp(dto);
-      sendSuccess(res, result, HttpStatus.OK);
-    } catch (err) {
-      next(err);
-    }
-  };
-
-  register = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
-    try {
-      const dto = registerSchema.parse(req.body);
-      const result = await this.studentService.register(dto);
+      const dto = registerVerifySchema.parse(req.body);
+      const result = await this.studentService.registerVerify(dto);
       sendSuccess(res, result, HttpStatus.CREATED);
     } catch (err) {
       next(err);
     }
   };
 
-  login = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
+  loginSendOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const dto = loginSchema.parse(req.body);
-      const result = await this.studentService.login(dto);
+      const dto = loginSendOtpSchema.parse(req.body);
+      const result = await this.studentService.loginSendOtp(dto);
+      sendSuccess(res, result, HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  loginVerify = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const dto = loginVerifySchema.parse(req.body);
+      const result = await this.studentService.loginVerify(dto);
       sendSuccess(res, result, HttpStatus.OK);
     } catch (err) {
       next(err);

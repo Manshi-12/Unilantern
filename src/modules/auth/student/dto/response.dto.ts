@@ -1,6 +1,7 @@
-export interface StudentSendOtpResponseDto {
-  expires_in_seconds: number;
+export interface StudentRegisterInitResponseDto {
+  otp_sent: true;
   phone_masked: string;
+  expires_in_seconds: number;
 }
 
 export interface StudentAuthResponseDto {
@@ -8,12 +9,6 @@ export interface StudentAuthResponseDto {
   student_id: string;
   role: "student";
   account_status: "independent" | "school_linked";
-  school_id?: string | null;
+  school_id: string | null;
   full_name: string;
-}
-
-export interface StudentVerifyOtpResponseDto {
-  verified: boolean;
-  phone_number: string;
-  purpose: "signup" | "login";
 }
