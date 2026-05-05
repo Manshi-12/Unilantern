@@ -72,7 +72,6 @@ router.post(
   verifyJWT,
   requireRole("student"),
   auditLogger("extracurricular_reorder"),
-  scoreRecalc,
   controller.reorderExtracurriculars,
 );
 

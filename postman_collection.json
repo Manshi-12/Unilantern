@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "unilantern-api-collection",
     "name": "UniLantern Backend API",
-    "description": "Complete API testing collection for UniLantern backend - Authentication, Profile, & Extracurriculars",
+    "description": "Complete API testing collection for UniLantern backend - Authentication, Profile, Extracurriculars, Service, and Scholarships",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "1"
   },
@@ -205,6 +205,42 @@
       "item": [
         {
           "name": "List Extracurriculars",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"List extracurriculars returns success envelope\", function () {",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.activities).to.be.an('array');",
+                  "});",
+                  "if (jsonData.success && jsonData.data.activities && jsonData.data.activities.length > 0) {",
+                  "    var first = jsonData.data.activities[0];",
+                  "    pm.environment.set(\"activity_id\", first.activity_id);",
+                  "    pm.test(\"List response hides internal guardrail fields\", function () {",
+                  "        pm.expect(first.hours_per_week).to.eql(undefined);",
+                  "        pm.expect(first.selective_acceptance_toggle).to.eql(undefined);",
+                  "        pm.expect(first.external_org_toggle).to.eql(undefined);",
+                  "        pm.expect(first.travel_or_residency_toggle).to.eql(undefined);",
+                  "        pm.expect(first.people_impacted).to.eql(undefined);",
+                  "        pm.expect(first.funds_raised).to.eql(undefined);",
+                  "        pm.expect(first.users_acquired).to.eql(undefined);",
+                  "        pm.expect(first.hours_delivered).to.eql(undefined);",
+                  "        pm.expect(first.competition_top_10_pct_toggle).to.eql(undefined);",
+                  "        pm.expect(first.finalist_or_winner_toggle).to.eql(undefined);",
+                  "        pm.expect(first.publication_or_presented_toggle).to.eql(undefined);",
+                  "        pm.expect(first.policy_or_partnership_toggle).to.eql(undefined);",
+                  "        pm.expect(first.structured_deliverable_toggle).to.eql(undefined);",
+                  "        pm.expect(first.language_or_skill_cert_toggle).to.eql(undefined);",
+                  "        pm.expect(first.formal_selection_toggle).to.eql(undefined);",
+                  "        pm.expect(first.documented_real_world_output).to.eql(undefined);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -278,6 +314,38 @@
         },
         {
           "name": "Get Extracurricular",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Get extracurricular returns success envelope\", function () {",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.activity_id).to.exist;",
+                  "});",
+                  "pm.test(\"Get response hides internal guardrail fields\", function () {",
+                  "    pm.expect(jsonData.data.hours_per_week).to.eql(undefined);",
+                  "    pm.expect(jsonData.data.selective_acceptance_toggle).to.eql(undefined);",
+                  "    pm.expect(jsonData.data.external_org_toggle).to.eql(undefined);",
+                  "    pm.expect(jsonData.data.travel_or_residency_toggle).to.eql(undefined);",
+                  "    pm.expect(jsonData.data.people_impacted).to.eql(undefined);",
+                  "    pm.expect(jsonData.data.funds_raised).to.eql(undefined);",
+                  "    pm.expect(jsonData.data.users_acquired).to.eql(undefined);",
+                  "    pm.expect(jsonData.data.hours_delivered).to.eql(undefined);",
+                  "    pm.expect(jsonData.data.competition_top_10_pct_toggle).to.eql(undefined);",
+                  "    pm.expect(jsonData.data.finalist_or_winner_toggle).to.eql(undefined);",
+                  "    pm.expect(jsonData.data.publication_or_presented_toggle).to.eql(undefined);",
+                  "    pm.expect(jsonData.data.policy_or_partnership_toggle).to.eql(undefined);",
+                  "    pm.expect(jsonData.data.structured_deliverable_toggle).to.eql(undefined);",
+                  "    pm.expect(jsonData.data.language_or_skill_cert_toggle).to.eql(undefined);",
+                  "    pm.expect(jsonData.data.formal_selection_toggle).to.eql(undefined);",
+                  "    pm.expect(jsonData.data.documented_real_world_output).to.eql(undefined);",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -351,6 +419,20 @@
         },
         {
           "name": "Reorder Extracurriculars",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Reorder does not queue score recalculation\", function () {",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.score_recalc_queued).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [

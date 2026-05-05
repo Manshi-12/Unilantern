@@ -256,11 +256,10 @@ export class ExtracurricularsService {
     }
 
     const updatedCount = await this.extracurricularsRepo.reorderExtracurriculars(studentId, orders);
-    const scoreQueued = await this.enqueueScoreRecalc(studentId, false);
 
     return {
       updated_count: updatedCount,
-      score_recalc_queued: scoreQueued,
+      score_recalc_queued: false,
     };
   }
 
@@ -274,23 +273,6 @@ export class ExtracurricularsService {
       activity_description: activity.activity_description,
       impact_text: activity.impact_text,
       impact_level: activity.impact_level,
-      hours_per_week: activity.hours_per_week,
-      experience_duration_weeks: activity.experience_duration_weeks,
-      selective_acceptance_toggle: activity.selective_acceptance_toggle,
-      external_org_toggle: activity.external_org_toggle,
-      travel_or_residency_toggle: activity.travel_or_residency_toggle,
-      people_impacted: activity.people_impacted,
-      funds_raised: activity.funds_raised,
-      users_acquired: activity.users_acquired,
-      hours_delivered: activity.hours_delivered,
-      competition_top_10_pct_toggle: activity.competition_top_10_pct_toggle,
-      finalist_or_winner_toggle: activity.finalist_or_winner_toggle,
-      publication_or_presented_toggle: activity.publication_or_presented_toggle,
-      policy_or_partnership_toggle: activity.policy_or_partnership_toggle,
-      structured_deliverable_toggle: activity.structured_deliverable_toggle,
-      language_or_skill_cert_toggle: activity.language_or_skill_cert_toggle,
-      formal_selection_toggle: activity.formal_selection_toggle,
-      documented_real_world_output: activity.documented_real_world_output,
       display_order: activity.display_order,
       created_at: activity.created_at.toISOString(),
       updated_at: activity.updated_at.toISOString(),

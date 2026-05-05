@@ -85,7 +85,12 @@ export class ScholarshipsRepository {
       where.push("s.college_id IS NULL");
     } else {
       where.push(
-        `(s.college_id IS NULL OR EXISTS (
+        `(s.college_id IS NULL
+          OR NOT EXISTS (
+            SELECT 1 FROM ${STUDENT_SAVED_COLLEGES_TABLE} sc_any
+             WHERE sc_any.student_id = @student_id
+          )
+          OR EXISTS (
             SELECT 1 FROM ${STUDENT_SAVED_COLLEGES_TABLE} sc
              WHERE sc.student_id = @student_id AND sc.college_id = s.college_id
           ))`,
@@ -97,11 +102,25 @@ export class ScholarshipsRepository {
       where.push(
         `(s.applicable_grad_years IS NULL
           OR s.applicable_grad_years = '[]'
+          OR LTRIM(RTRIM(s.applicable_grad_years)) = ''
           OR EXISTS (
-            SELECT 1
-              FROM OPENJSON(s.applicable_grad_years)
-             WHERE TRY_CONVERT(INT, value) = @graduation_year
-          ))`,
+              SELECT 1
+                FROM OPENJSON(
+                  CASE
+                    WHEN ISJSON(s.applicable_grad_years) = 1 THEN s.applicable_grad_years
+                    ELSE '[]'
+                  END
+                )
+               WHERE TRY_CONVERT(INT, value) = @graduation_year
+            )
+          OR (
+              ISJSON(s.applicable_grad_years) = 0
+              AND EXISTS (
+                SELECT 1
+                  FROM STRING_SPLIT(s.applicable_grad_years, ',')
+                 WHERE TRY_CONVERT(INT, LTRIM(RTRIM(value))) = @graduation_year
+              )
+            ))`,
       );
     }
 
