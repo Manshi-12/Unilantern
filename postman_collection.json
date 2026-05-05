@@ -1,0 +1,741 @@
+{
+  "info": {
+    "_postman_id": "unilantern-api-collection",
+    "name": "UniLantern Backend API",
+    "description": "Complete API testing collection for UniLantern backend - Authentication, Profile, & Extracurriculars",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "1"
+  },
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Register - Step 1 (Get OTP)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+12125551234\",\n  \"email\": \"john.doe@example.com\",\n  \"full_name\": \"John Doe\",\n  \"graduation_year\": 2026,\n  \"date_of_birth\": \"2005-03-20\",\n  \"high_school_name\": \"Lincoln High School\",\n  \"state_of_residence\": \"California\",\n  \"confirms_age_13_plus\": true,\n  \"confirms_parental_permission\": false,\n  \"college_data_share\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "student", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register - Step 2 (Verify OTP)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data.access_token) {",
+                  "    pm.environment.set(\"access_token\", jsonData.data.access_token);",
+                  "    pm.environment.set(\"student_id\", jsonData.data.student_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+12125551234\",\n  \"otp_code\": \"000000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/register/verify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "student", "register", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Login - Step 1 (Get OTP)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+12125551234\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "student", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login - Step 2 (Verify OTP)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data.access_token) {",
+                  "    pm.environment.set(\"access_token\", jsonData.data.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+12125551234\",\n  \"otp_code\": \"000000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/login/verify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "student", "login", "verify"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Students (Profile)",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"John Michael Doe\",\n  \"grade\": 11,\n  \"graduation_year\": 2025,\n  \"high_school_name\": \"Lincoln High School - Updated\",\n  \"state\": \"New York\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎯 Extracurriculars",
+      "item": [
+        {
+          "name": "List Extracurriculars",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/extracurriculars?limit=20&cursor=",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "extracurriculars"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "cursor",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Extracurricular",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data.activity_id) {",
+                  "    pm.environment.set(\"activity_id\", jsonData.data.activity_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activity_name\": \"Debate Club\",\n  \"activity_type\": \"club\",\n  \"years_involved\": \"2\",\n  \"involvement_level\": \"key_contributor\",\n  \"activity_description\": \"Competed in regional debate tournaments and won 3rd place at state championships.\",\n  \"impact_text\": \"Improved public speaking skills and leadership abilities\",\n  \"impact_level\": \"measurable\",\n  \"hours_per_week\": \"6_to_10\",\n  \"experience_duration_weeks\": 52,\n  \"selective_acceptance_toggle\": false,\n  \"external_org_toggle\": true,\n  \"travel_or_residency_toggle\": false,\n  \"people_impacted\": 0,\n  \"funds_raised\": 0,\n  \"users_acquired\": 0,\n  \"hours_delivered\": 0,\n  \"competition_top_10_pct_toggle\": true,\n  \"finalist_or_winner_toggle\": false,\n  \"publication_or_presented_toggle\": false,\n  \"policy_or_partnership_toggle\": false,\n  \"structured_deliverable_toggle\": false,\n  \"language_or_skill_cert_toggle\": false,\n  \"formal_selection_toggle\": false,\n  \"documented_real_world_output_toggle\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/extracurriculars",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "extracurriculars"]
+            }
+          }
+        },
+        {
+          "name": "Get Extracurricular",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/extracurriculars/{{activity_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "extracurriculars", "{{activity_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Extracurricular",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activity_name\": \"Debate Club - Updated\",\n  \"impact_level\": \"created_scaled\",\n  \"hours_per_week\": \"11_to_20\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/extracurriculars/{{activity_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "extracurriculars", "{{activity_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Extracurricular",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/extracurriculars/{{activity_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "extracurriculars", "{{activity_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Reorder Extracurriculars",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activities\": [\n    {\n      \"activity_id\": \"3\",\n      \"display_order\": 1\n    },\n    {\n      \"activity_id\": \"1\",\n      \"display_order\": 2\n    },\n    {\n      \"activity_id\": \"2\",\n      \"display_order\": 3\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/extracurriculars/reorder",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "extracurriculars", "reorder"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Community Service",
+      "item": [
+        {
+          "name": "List Community Service",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/service",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "service"]
+            }
+          }
+        },
+        {
+          "name": "Create Community Service",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data.service_id) {",
+                  "    pm.environment.set(\"service_id\", jsonData.data.service_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"total_hours_range\": \"100_200\",\n  \"action_type\": \"organizing\",\n  \"is_leadership\": true,\n  \"duration_months\": 12\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/service",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "service"]
+            }
+          }
+        },
+        {
+          "name": "Update Community Service",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"total_hours_range\": \"200_plus\",\n  \"action_type\": \"teaching\",\n  \"is_leadership\": true,\n  \"duration_months\": 18\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/service/{{service_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "service", "{{service_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Community Service",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/service/{{service_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "service", "{{service_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Scholarships",
+      "item": [
+        {
+          "name": "List Scholarships",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data.next_cursor) {",
+                  "    pm.environment.set(\"scholarship_cursor\", jsonData.data.next_cursor);",
+                  "}",
+                  "if (jsonData.success && jsonData.data.data && jsonData.data.data.length > 0) {",
+                  "    pm.environment.set(\"scholarship_id\", jsonData.data.data[0].scholarship_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/scholarships?general_only=false&sort=deadline_asc&limit=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "scholarships"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Optional: merit, need, athletic, demographic, major, other",
+                  "disabled": true
+                },
+                {
+                  "key": "college_id",
+                  "value": "",
+                  "description": "Optional saved college id",
+                  "disabled": true
+                },
+                {
+                  "key": "general_only",
+                  "value": "false"
+                },
+                {
+                  "key": "sort",
+                  "value": "deadline_asc",
+                  "description": "deadline_asc, deadline_desc, amount_desc"
+                },
+                {
+                  "key": "limit",
+                  "value": "30"
+                },
+                {
+                  "key": "cursor",
+                  "value": "{{scholarship_cursor}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List General Scholarships Only",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/scholarships?general_only=true&sort=deadline_asc&limit=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "scholarships"],
+              "query": [
+                {
+                  "key": "general_only",
+                  "value": "true"
+                },
+                {
+                  "key": "sort",
+                  "value": "deadline_asc"
+                },
+                {
+                  "key": "limit",
+                  "value": "30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Scholarship Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/scholarships/{{scholarship_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "scholarships", "{{scholarship_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Save Scholarship",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data.saved_scholarship_id) {",
+                  "    pm.environment.set(\"saved_scholarship_id\", jsonData.data.saved_scholarship_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scholarship_id\": {{scholarship_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/scholarships/saved",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "scholarships", "saved"]
+            }
+          }
+        },
+        {
+          "name": "Unsave Scholarship",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/scholarships/saved/{{saved_scholarship_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "scholarships", "saved", "{{saved_scholarship_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "student_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "activity_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "service_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "scholarship_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "saved_scholarship_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "scholarship_cursor",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

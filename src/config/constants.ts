@@ -18,6 +18,11 @@ export const RATE_LIMITS = {
   EC_UPDATE:     { limit: 30,  window: 60 },
   EC_DELETE:     { limit: 30,  window: 60 },
   EC_REORDER:    { limit: 30,  window: 60 },
+  SERVICE_LIST:  { limit: 120, window: 60 },
+  SERVICE_WRITE: { limit: 30,  window: 60 },
+  SCHOLARSHIPS_LIST:  { limit: 60,  window: 60 },
+  SCHOLARSHIPS_GET:   { limit: 120, window: 60 },
+  SCHOLARSHIPS_WRITE: { limit: 30,  window: 60 },
 } as const;
 
 export const STUDENT_ROLE = "student" as const;
