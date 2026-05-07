@@ -10,6 +10,8 @@ import studentProfileRouter from "./modules/students/students.routes.js";
 import studentExtracurricularRouter from "./modules/extracurriculars/extracurriculars.routes.js";
 import serviceRouter from "./modules/service/service.routes.js";
 import scholarshipsRouter from "./modules/scholarships/scholarships.routes.js";
+import consentsRouter from "./modules/consents/consents.routes.js";
+import settingsRouter from "./modules/settings/settings.routes.js";
 import { AuthError } from "./shared/errors/auth-error.js";
 import { ConflictError } from "./shared/errors/conflict-error.js";
 import { RateLimitError } from "./shared/errors/rate-limit-error.js";
@@ -25,6 +27,8 @@ app.use("/api/v1", studentProfileRouter);
 app.use("/api/v1", studentExtracurricularRouter);
 app.use("/api/v1", serviceRouter);
 app.use("/api/v1", scholarshipsRouter);
+app.use("/api/v1", consentsRouter);
+app.use("/api/v1", settingsRouter);
 
 app.get("/", (_req: Request, res: Response) => {
   res.status(200).json({

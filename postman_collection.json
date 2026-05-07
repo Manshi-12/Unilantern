@@ -776,6 +776,148 @@
           }
         }
       ]
+    },
+    {
+      "name": "🛡️ Privacy & Consents",
+      "item": [
+        {
+          "name": "Get All Consents",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/consents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "consents"]
+            }
+          }
+        },
+        {
+          "name": "Grant Consent",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/consents/advisor_essay/grant",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "consents", "advisor_essay", "grant"]
+            }
+          }
+        },
+        {
+          "name": "Revoke Consent",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/consents/advisor_essay/revoke",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "consents", "advisor_essay", "revoke"]
+            }
+          }
+        },
+        {
+          "name": "Get College Data Sharing Preference",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/college-data-sharing",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "college-data-sharing"]
+            }
+          }
+        },
+        {
+          "name": "Update College Data Sharing Preference",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/college-data-sharing",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "college-data-sharing"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚙️ Settings & Feedback",
+      "item": [
+        {
+          "name": "Submit Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"feedback_type\": \"feature_request\",\n  \"message\": \"I would love to see more scholarship filters!\",\n  \"contact_consent\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/feedback",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "feedback"]
+            }
+          }
+        },
+        {
+          "name": "Change Password (Stub)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"old-password\",\n  \"new_password\": \"new-password-123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/settings/password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "settings", "password"]
+            }
+          }
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirmation\": \"DELETE\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/account",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "students", "me", "account"]
+            }
+          }
+        }
+      ]
     }
   ],
   "variable": [

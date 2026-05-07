@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction, RequestHandler } from "express";
 import { verifyAccessToken } from "../utils/jwt.js";
 import { AuthError } from "../errors/auth-error.js";
 import { AuthErrorCode } from "../response/error-codes.js";
+import { AuditRepository } from "../repository/audit.repository.js";
 
 export interface AuthUser {
   student_id: number;
@@ -56,11 +57,44 @@ export function requireRole(role: string): RequestHandler {
   };
 }
 
+const auditRepo = new AuditRepository();
+
+function redact(obj: any): any {
+  if (!obj || typeof obj !== "object") return obj;
+  const sensitiveKeys = ["otp_code"];
+  const redacted = { ...obj };
+  for (const key of Object.keys(redacted)) {
+    if (sensitiveKeys.includes(key)) {
+      redacted[key] = "[REDACTED]";
+    } else if (typeof redacted[key] === "object") {
+      redacted[key] = redact(redacted[key]);
+    }
+  }
+  return redacted;
+}
+
 export function auditLogger(action: string): RequestHandler {
   return (req: Request, res: Response, next: NextFunction): void => {
     const user = res.locals.user as AuthUser | undefined;
-    const studentId = user?.student_id ?? "anonymous";
-    console.log(`[audit] action=${action} student_id=${studentId} path=${req.method} ${req.path}`);
+
+    if (!user) return next();
+
+    // Fire and forget logging
+    auditRepo.log({
+      actor_id: user.student_id,
+      actor_role: user.role,
+      actor_school_id: user.school_id ?? null,
+      action_type: action,
+      target_resource: `${req.method} ${req.path}`,
+      ip_address: req.ip,
+      user_agent: req.headers["user-agent"],
+      metadata: {
+        query: req.query,
+        params: req.params,
+        body: redact(req.body),
+      }
+    });
+
     next();
   };
 }
