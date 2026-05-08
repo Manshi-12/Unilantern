@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "unilantern-api-collection",
+    "_postman_id": "7cc8cd5f-377b-41cf-bc9f-094ca45d004c",
     "name": "UniLantern Backend API",
-    "description": "Complete API testing collection for UniLantern backend - Authentication, Profile, Extracurriculars, Service, and Scholarships",
+    "description": "Complete API testing collection for UniLantern backend - Authentication, Profile, Extracurriculars, Service, Scholarships, School Linking, and Analytics",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "1"
+    "_exporter_id": "53666632"
   },
   "item": [
     {
@@ -23,10 +23,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/health",
-              "host": ["{{base_url}}"],
-              "path": ["health"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Register - Step 1 (Get OTP)",
@@ -45,10 +50,19 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/student/register",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "student", "register"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "register"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Register - Step 2 (Verify OTP)",
@@ -62,7 +76,8 @@
                   "    pm.environment.set(\"access_token\", jsonData.data.access_token);",
                   "    pm.environment.set(\"student_id\", jsonData.data.student_id);",
                   "}"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -81,10 +96,20 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/student/register/verify",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "student", "register", "verify"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "register",
+                "verify"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Login - Step 1 (Get OTP)",
@@ -103,10 +128,19 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/student/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "student", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "login"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Login - Step 2 (Verify OTP)",
@@ -119,7 +153,8 @@
                   "if (jsonData.success && jsonData.data.access_token) {",
                   "    pm.environment.set(\"access_token\", jsonData.data.access_token);",
                   "}"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -138,10 +173,20 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/student/login/verify",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "student", "login", "verify"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "login",
+                "verify"
+              ]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -166,10 +211,19 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/profile",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "profile"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "profile"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Update Profile",
@@ -193,10 +247,19 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/profile",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "profile"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "profile"
+              ]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -237,7 +300,8 @@
                   "        pm.expect(first.documented_real_world_output).to.eql(undefined);",
                   "    });",
                   "}"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -257,8 +321,16 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/extracurriculars?limit=20&cursor=",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "extracurriculars"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "extracurriculars"
+              ],
               "query": [
                 {
                   "key": "limit",
@@ -270,7 +342,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Create Extracurricular",
@@ -283,7 +356,8 @@
                   "if (jsonData.success && jsonData.data.activity_id) {",
                   "    pm.environment.set(\"activity_id\", jsonData.data.activity_id);",
                   "}"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -307,10 +381,19 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/extracurriculars",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "extracurriculars"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "extracurriculars"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Extracurricular",
@@ -342,7 +425,8 @@
                   "    pm.expect(jsonData.data.formal_selection_toggle).to.eql(undefined);",
                   "    pm.expect(jsonData.data.documented_real_world_output).to.eql(undefined);",
                   "});"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -362,10 +446,20 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/extracurriculars/{{activity_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "extracurriculars", "{{activity_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "extracurriculars",
+                "{{activity_id}}"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Update Extracurricular",
@@ -389,10 +483,20 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/extracurriculars/{{activity_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "extracurriculars", "{{activity_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "extracurriculars",
+                "{{activity_id}}"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Delete Extracurricular",
@@ -412,10 +516,20 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/extracurriculars/{{activity_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "extracurriculars", "{{activity_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "extracurriculars",
+                "{{activity_id}}"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Reorder Extracurriculars",
@@ -429,7 +543,8 @@
                   "    pm.expect(jsonData.success).to.eql(true);",
                   "    pm.expect(jsonData.data.score_recalc_queued).to.eql(false);",
                   "});"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -453,15 +568,25 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/extracurriculars/reorder",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "extracurriculars", "reorder"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "extracurriculars",
+                "reorder"
+              ]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Community Service",
+      "name": "🧩 Community Service",
       "item": [
         {
           "name": "List Community Service",
@@ -481,10 +606,19 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/service",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "service"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "service"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Create Community Service",
@@ -497,7 +631,8 @@
                   "if (jsonData.success && jsonData.data.service_id) {",
                   "    pm.environment.set(\"service_id\", jsonData.data.service_id);",
                   "}"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -521,10 +656,19 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/service",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "service"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "service"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Update Community Service",
@@ -548,10 +692,20 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/service/{{service_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "service", "{{service_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "service",
+                "{{service_id}}"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Delete Community Service",
@@ -571,15 +725,25 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/service/{{service_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "service", "{{service_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "service",
+                "{{service_id}}"
+              ]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Scholarships",
+      "name": "🏆 Scholarships",
       "item": [
         {
           "name": "List Scholarships",
@@ -595,7 +759,8 @@
                   "if (jsonData.success && jsonData.data.data && jsonData.data.data.length > 0) {",
                   "    pm.environment.set(\"scholarship_id\", jsonData.data.data[0].scholarship_id);",
                   "}"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -615,8 +780,16 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/scholarships?general_only=false&sort=deadline_asc&limit=30",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "scholarships"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "scholarships"
+              ],
               "query": [
                 {
                   "key": "type",
@@ -650,7 +823,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "List General Scholarships Only",
@@ -670,8 +844,16 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/scholarships?general_only=true&sort=deadline_asc&limit=30",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "scholarships"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "scholarships"
+              ],
               "query": [
                 {
                   "key": "general_only",
@@ -687,7 +869,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Scholarship Detail",
@@ -707,10 +890,18 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/scholarships/{{scholarship_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "scholarships", "{{scholarship_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "scholarships",
+                "{{scholarship_id}}"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Save Scholarship",
@@ -723,7 +914,8 @@
                   "if (jsonData.success && jsonData.data.saved_scholarship_id) {",
                   "    pm.environment.set(\"saved_scholarship_id\", jsonData.data.saved_scholarship_id);",
                   "}"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -747,10 +939,20 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/scholarships/saved",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "scholarships", "saved"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "scholarships",
+                "saved"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Unsave Scholarship",
@@ -770,10 +972,21 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/scholarships/saved/{{saved_scholarship_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "scholarships", "saved", "{{saved_scholarship_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "scholarships",
+                "saved",
+                "{{saved_scholarship_id}}"
+              ]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -785,64 +998,128 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/consents",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "consents"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "consents"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Grant Consent",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/consents/advisor_essay/grant",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "consents", "advisor_essay", "grant"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "consents",
+                "advisor_essay",
+                "grant"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Revoke Consent",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/consents/advisor_essay/revoke",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "consents", "advisor_essay", "revoke"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "consents",
+                "advisor_essay",
+                "revoke"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get College Data Sharing Preference",
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/college-data-sharing",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "college-data-sharing"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "college-data-sharing"
+              ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Update College Data Sharing Preference",
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -850,10 +1127,277 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/college-data-sharing",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "college-data-sharing"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "college-data-sharing"
+              ]
             }
-          }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔗 School Linking",
+      "item": [
+        {
+          "name": "Search Schools",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Search schools returns success envelope\", function () {",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.be.an(\"array\");",
+                  "});",
+                  "if (jsonData.success && jsonData.data.length > 0) {",
+                  "    pm.environment.set(\"school_id\", jsonData.data[0].school_id);",
+                  "    pm.environment.set(\"school_name\", jsonData.data[0].school_name);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-Platform",
+                "value": "web",
+                "type": "text"
+              },
+              {
+                "key": "X-App-Version",
+                "value": "2.0.0",
+                "type": "text"
+              },
+              {
+                "key": "X-Session-ID",
+                "value": "{{session_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/schools/search?q=Lincoln&state=California&limit=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "schools",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "Lincoln",
+                  "description": "Required. Minimum 2 characters."
+                },
+                {
+                  "key": "state",
+                  "value": "California",
+                  "description": "Optional state filter."
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Optional. Default 10, max 30."
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Initiate School Link",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data.school_id) {",
+                  "    pm.environment.set(\"school_id\", jsonData.data.school_id);",
+                  "}",
+                  "if (jsonData.success && jsonData.data.merge_candidates && jsonData.data.merge_candidates.length > 0) {",
+                  "    pm.environment.set(\"confirmed_student_id\", jsonData.data.merge_candidates[0].student_id);",
+                  "}",
+                  "pm.test(\"Link response has expected status field\", function () {",
+                  "    pm.expect(jsonData.data.link_status).to.be.oneOf([\"linked\", \"conflict\", \"pending_confirmation\"]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-Platform",
+                "value": "web",
+                "type": "text"
+              },
+              {
+                "key": "X-App-Version",
+                "value": "2.0.0",
+                "type": "text"
+              },
+              {
+                "key": "X-Session-ID",
+                "value": "{{session_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"school_id\": \"{{school_id}}\",\n  \"school_email\": \"john.doe@lincoln.k12.edu\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/school/link",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "school",
+                "link"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Account Merge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-Platform",
+                "value": "web",
+                "type": "text"
+              },
+              {
+                "key": "X-App-Version",
+                "value": "2.0.0",
+                "type": "text"
+              },
+              {
+                "key": "X-Session-ID",
+                "value": "{{session_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirmed_student_id\": \"{{confirmed_student_id}}\",\n  \"school_id\": \"{{school_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/school/merge-confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "school",
+                "merge-confirm"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Linked School Info",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-Platform",
+                "value": "web",
+                "type": "text"
+              },
+              {
+                "key": "X-App-Version",
+                "value": "2.0.0",
+                "type": "text"
+              },
+              {
+                "key": "X-Session-ID",
+                "value": "{{session_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/school",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "school"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -865,8 +1409,16 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -874,37 +1426,33 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/feedback",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "feedback"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "feedback"
+              ]
             }
-          }
-        },
-        {
-          "name": "Change Password (Stub)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"current_password\": \"old-password\",\n  \"new_password\": \"new-password-123\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/students/me/settings/password",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "settings", "password"]
-            }
-          }
+          },
+          "response": []
         },
         {
           "name": "Delete Account",
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Content-Type", "value": "application/json", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" }
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -912,10 +1460,134 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/students/me/account",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "students", "me", "account"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "account"
+              ]
             }
-          }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📝 Analytics",
+      "item": [
+        {
+          "name": "Track Analytics Events - Invalid Sensitive Properties Example",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-Platform",
+                "value": "web",
+                "type": "text"
+              },
+              {
+                "key": "X-App-Version",
+                "value": "2.0.0",
+                "type": "text"
+              },
+              {
+                "key": "X-Session-ID",
+                "value": "{{session_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"events\": [\n    {\n      \"event_name\": \"screen_view\",\n      \"platform\": \"web\",\n      \"session_id\": \"{{session_id}}\",\n      \"timestamp\": \"2026-05-07T10:31:00.000Z\",\n      \"properties\": {\n        \"essay_text\": \"This should be rejected by the API layer.\"\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/analytics/events",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "analytics",
+                "events"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Track Analytics Events (Batch)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-Platform",
+                "value": "web",
+                "type": "text"
+              },
+              {
+                "key": "X-App-Version",
+                "value": "2.0.0",
+                "type": "text"
+              },
+              {
+                "key": "X-Session-ID",
+                "value": "{{session_id}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"events\": [\n    {\n      \"event_name\": \"bottom_tab_click\",\n      \"tab_name\": \"Profile\",\n      \"platform\": \"web\",\n      \"session_id\": \"{{session_id}}\",\n      \"timestamp\": \"2026-05-07T10:30:00.000Z\",\n      \"properties\": {\n        \"source\": \"bottom_navigation\",\n        \"previous_tab\": \"Search\"\n      }\n    },\n    {\n      \"event_name\": \"screen_view\",\n      \"platform\": \"web\",\n      \"session_id\": \"{{session_id}}\",\n      \"timestamp\": \"2026-05-07T10:30:03.000Z\",\n      \"properties\": {\n        \"screen_name\": \"ProfileOverview\"\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/analytics/events",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "analytics",
+                "events"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     }
@@ -923,43 +1595,51 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "http://localhost:3000",
-      "type": "string"
+      "value": "http://localhost:3000"
     },
     {
       "key": "access_token",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "student_id",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "activity_id",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "service_id",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "scholarship_id",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "saved_scholarship_id",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "scholarship_cursor",
-      "value": "",
-      "type": "string"
+      "value": ""
+    },
+    {
+      "key": "school_id",
+      "value": "1"
+    },
+    {
+      "key": "school_name",
+      "value": ""
+    },
+    {
+      "key": "confirmed_student_id",
+      "value": ""
+    },
+    {
+      "key": "session_id",
+      "value": "11111111-2222-4333-8444-555555555555"
     }
   ]
 }

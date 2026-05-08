@@ -8,6 +8,8 @@ import type {
   CollegeDataSharingResponseDto
 } from "./dto/response.dto.js";
 
+const normalizeStatus = (status: string | null | undefined): string => status?.toLowerCase() ?? "";
+
 export class ConsentsService {
   constructor(private readonly consentsRepository: ConsentsRepository) {}
 
@@ -37,7 +39,7 @@ export class ConsentsService {
 
   async grantConsent(userId: number, consentType: ConsentType): Promise<ConsentRecordResponseDto> {
     const existing = await this.consentsRepository.findByUserIdAndType(userId, consentType);
-    if (existing && existing.status === ConsentStatus.GRANTED) {
+    if (existing && normalizeStatus(existing.status) === ConsentStatus.GRANTED) {
       throw new AuthError(AuthErrorCode.ALREADY_GRANTED, "Consent already in granted state", 409);
     }
 
@@ -59,7 +61,7 @@ export class ConsentsService {
     }
 
     const existing = await this.consentsRepository.findByUserIdAndType(userId, consentType);
-    if (existing && existing.status === ConsentStatus.REVOKED) {
+    if (existing && normalizeStatus(existing.status) === ConsentStatus.REVOKED) {
       throw new AuthError(AuthErrorCode.ALREADY_REVOKED, "Consent already revoked", 400);
     }
 
@@ -79,7 +81,7 @@ export class ConsentsService {
     const record = await this.consentsRepository.findByUserIdAndType(userId, ConsentType.COLLEGE);
     
     // Default is true (opted in)
-    const enabled = record ? record.status === ConsentStatus.GRANTED : true;
+    const enabled = record ? normalizeStatus(record.status) === ConsentStatus.GRANTED : true;
     const updatedAt = record ? (record.revoked_at || record.granted_at || record.created_at) : new Date();
 
     return {
@@ -93,7 +95,7 @@ export class ConsentsService {
     const record = await this.consentsRepository.upsertConsent(userId, ConsentType.COLLEGE, status);
     
     return {
-      college_data_sharing_enabled: record.status === ConsentStatus.GRANTED,
+      college_data_sharing_enabled: normalizeStatus(record.status) === ConsentStatus.GRANTED,
       updated_at: (record.revoked_at || record.granted_at || record.created_at).toISOString(),
     };
   }
