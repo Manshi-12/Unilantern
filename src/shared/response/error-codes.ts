@@ -21,22 +21,73 @@ export const AuthErrorCode = {
   JWT_INVALID: "JWT_INVALID",
   JWT_EXPIRED: "JWT_EXPIRED",
   TOKEN_INVALID: "TOKEN_INVALID",
-  FORBIDDEN: "FORBIDDEN",
-  NOT_FOUND: "NOT_FOUND",
 
   TOO_MANY_REQUESTS: "TOO_MANY_REQUESTS",
   VALIDATION_ERROR: "VALIDATION_ERROR",
   INTERNAL_ERROR: "INTERNAL_ERROR",
 
-  // Consents
+  SESSION_INVALID: "SESSION_INVALID",
+  SESSION_EXPIRED: "SESSION_EXPIRED",
+  SESSION_NOT_FOUND: "SESSION_NOT_FOUND",
+
+  // ── Academics ───────────────────────────────────────────────────────────
+  ACADEMIC_NOT_FOUND: "ACADEMIC_NOT_FOUND",
+  SAT_SCORE_REQUIRED: "SAT_SCORE_REQUIRED",
+  ACT_SCORE_REQUIRED: "ACT_SCORE_REQUIRED",
+  GPA_OUT_OF_RANGE:   "GPA_OUT_OF_RANGE",
+
+  // ── Awards ──────────────────────────────────────────────────────────────
+  AWARD_NOT_FOUND: "AWARD_NOT_FOUND",
+
+  // ── Service ─────────────────────────────────────────────────────────────
+  SERVICE_NOT_FOUND:     "SERVICE_NOT_FOUND",
+  SERVICE_LIMIT_REACHED: "SERVICE_LIMIT_REACHED",
+
+  // ── Essays ──────────────────────────────────────────────────────────────
+  ESSAY_NOT_AVAILABLE:       "ESSAY_NOT_AVAILABLE",
+  ESSAY_PREREQ_NOT_MET:      "ESSAY_PREREQ_NOT_MET",
+  ESSAY_STATUS_INVALID:      "ESSAY_STATUS_INVALID",
+  ESSAY_REFLECTION_LOCKED:   "ESSAY_REFLECTION_LOCKED",
+  ESSAY_ALREADY_FINALIZED:   "ESSAY_ALREADY_FINALIZED",
+  ESSAY_CONFIRMATION_REQUIRED: "ESSAY_CONFIRMATION_REQUIRED",
+
+  // ── Colleges ────────────────────────────────────────────────────────────
+  COLLEGE_NOT_FOUND:     "COLLEGE_NOT_FOUND",
+  COLLEGE_ALREADY_SAVED: "COLLEGE_ALREADY_SAVED",
+
+  // ── Account Deletion ────────────────────────────────────────────────────
+  DELETION_ALREADY_INITIATED: "DELETION_ALREADY_INITIATED",
+  INVALID_CONFIRMATION_FLAG:  "INVALID_CONFIRMATION_FLAG",
+  NO_PENDING_DELETION:        "NO_PENDING_DELETION",
+  CODE_INVALID:               "CODE_INVALID",
+  CODE_EXPIRED:               "CODE_EXPIRED",
+  REACTIVATION_WINDOW_CLOSED: "REACTIVATION_WINDOW_CLOSED",
+
+  // ── Consents ────────────────────────────────────────────────────────────
   INVALID_CONSENT_TYPE: "INVALID_CONSENT_TYPE",
-  ALREADY_GRANTED: "ALREADY_GRANTED",
-  ALREADY_REVOKED: "ALREADY_REVOKED",
+  ALREADY_GRANTED:      "ALREADY_GRANTED",
+  ALREADY_REVOKED:      "ALREADY_REVOKED",
   CONSENT_NOT_REVOCABLE: "CONSENT_NOT_REVOCABLE",
 
-  // Feedback & Settings
-  MESSAGE_REQUIRED: "MESSAGE_REQUIRED",
+  // ── Feedback & Settings ─────────────────────────────────────────────────
+  MESSAGE_REQUIRED:      "MESSAGE_REQUIRED",
   CONFIRMATION_MISMATCH: "CONFIRMATION_MISMATCH",
+
+  // ── Notifications ────────────────────────────────────────────────────────
+  NOTIFICATION_NOT_FOUND:     "NOTIFICATION_NOT_FOUND",
+  NOTIFICATION_ACCESS_DENIED: "NOTIFICATION_ACCESS_DENIED",
+  PREFERENCE_UPDATE_FAILED:   "PREFERENCE_UPDATE_FAILED",
+
+  // ── Push Tokens ──────────────────────────────────────────────────────────
+  PUSH_TOKEN_NOT_FOUND:       "PUSH_TOKEN_NOT_FOUND",
+  PUSH_TOKEN_ALREADY_EXISTS:  "PUSH_TOKEN_ALREADY_EXISTS",
+
+  // ── Cron Jobs ────────────────────────────────────────────────────────────
+  JOB_NOT_FOUND:              "JOB_NOT_FOUND",
+  JOB_ALREADY_RUNNING:        "JOB_ALREADY_RUNNING",
+
+  FORBIDDEN: "FORBIDDEN",
+  NOT_FOUND: "NOT_FOUND",
 } as const;
 
 export type AuthErrorCode = (typeof AuthErrorCode)[keyof typeof AuthErrorCode];

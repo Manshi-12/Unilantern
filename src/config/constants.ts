@@ -36,3 +36,5 @@ export const OTP_PURPOSE = {
   LOGIN: "login",
   PHONE_CHANGE: "phone_change",
 } as const;
+
+export const REFRESH_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days

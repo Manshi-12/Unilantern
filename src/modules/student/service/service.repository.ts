@@ -58,12 +58,21 @@ export class ServiceRepository {
       .input("duration_months", sql.SmallInt, data.duration_months ?? null)
       .input("display_order", sql.SmallInt, orderResult.recordset[0]?.display_order ?? 1)
       .query<RawServiceRow>(
-        `INSERT INTO ${COMMUNITY_SERVICE_ENTRIES_TABLE}
-          (student_id, total_hours_range, action_type, is_leadership, duration_months, display_order)
+        `DECLARE @OutputTable TABLE (
+            service_id INT, student_id INT, total_hours_range VARCHAR(10), action_type VARCHAR(15),
+            is_leadership BIT, duration_months SMALLINT, display_order SMALLINT,
+            created_at DATETIMEOFFSET, updated_at DATETIMEOFFSET
+         );
+
+         INSERT INTO ${COMMUNITY_SERVICE_ENTRIES_TABLE}
+           (student_id, total_hours_range, action_type, is_leadership, duration_months, display_order)
          OUTPUT INSERTED.service_id, INSERTED.student_id, INSERTED.total_hours_range, INSERTED.action_type,
                 INSERTED.is_leadership, INSERTED.duration_months, INSERTED.display_order,
                 INSERTED.created_at, INSERTED.updated_at
-         VALUES (@student_id, @total_hours_range, @action_type, @is_leadership, @duration_months, @display_order);`,
+         INTO @OutputTable
+         VALUES (@student_id, @total_hours_range, @action_type, @is_leadership, @duration_months, @display_order);
+
+         SELECT * FROM @OutputTable;`,
       );
 
     const row = result.recordset[0];

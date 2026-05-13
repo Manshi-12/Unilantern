@@ -392,8 +392,12 @@ CREATE TABLE notifications (
     is_read                 BIT                 NOT NULL    DEFAULT 0,
     read_at                 DATETIMEOFFSET      NULL,
 
+    -- ── Metadata & Extra Data ────────────────────────────────────────────────
+    metadata                NVARCHAR(MAX)       NULL,       -- JSON metadata for context
+
     -- ── Audit ─────────────────────────────────────────────────────────────────
     created_at              DATETIMEOFFSET      NOT NULL    DEFAULT SYSDATETIMEOFFSET(),
+    updated_at              DATETIMEOFFSET      NOT NULL    DEFAULT SYSDATETIMEOFFSET(),
 
     -- ── Constraints ───────────────────────────────────────────────────────────
     CONSTRAINT pk_notifications PRIMARY KEY (notification_id),
@@ -438,8 +442,14 @@ CREATE TABLE notification_preferences (
     notification_type       VARCHAR(60)         NOT NULL,
     delivery_channel        VARCHAR(20)         NOT NULL,   -- in_app | push | email
     enabled                 BIT                 NOT NULL    DEFAULT 1,
+    is_critical             BIT                 NOT NULL    DEFAULT 0,    -- critical notifications always deliver
+
+    -- ── Quiet hours (do not notify in this window) ─────────────────────────────
+    quiet_hours_start       TIME                NULL,       -- e.g. 22:00 (10 PM)
+    quiet_hours_end         TIME                NULL,       -- e.g. 08:00 (8 AM)
 
     -- ── Audit ─────────────────────────────────────────────────────────────────
+    created_at              DATETIMEOFFSET      NOT NULL    DEFAULT SYSDATETIMEOFFSET(),
     updated_at              DATETIMEOFFSET      NOT NULL    DEFAULT SYSDATETIMEOFFSET(),
 
     -- ── Constraints ───────────────────────────────────────────────────────────

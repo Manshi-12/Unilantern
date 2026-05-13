@@ -630,7 +630,12 @@ CREATE TABLE student_academics (
     CONSTRAINT chk_sa_sat               CHECK (sat_score        BETWEEN 400  AND 1600),
     CONSTRAINT chk_sa_act               CHECK (act_score        BETWEEN 1    AND 36),
     CONSTRAINT chk_sa_sat_needs_status  CHECK (sat_score IS NULL OR test_status = 'sat'),
-    CONSTRAINT chk_sa_act_needs_status  CHECK (act_score IS NULL OR test_status = 'act')
+    CONSTRAINT chk_sa_act_needs_status  CHECK (act_score IS NULL OR test_status = 'act'),
+
+    -- Exactly one score OR none — never both
+    CONSTRAINT chk_sa_one_test_only        CHECK (
+        NOT (sat_score IS NOT NULL AND act_score IS NOT NULL)
+    )
 );
 GO
 
@@ -900,7 +905,7 @@ CREATE TABLE student_essays (
                                                 CHECK (not_started_reason IN ('too_short', 'not_saved', 'repetitive', 'empty')),
 
     -- ── Milestone timestamps ──────────────────────────────────────────────────
-    drafted_at              DATETIMEOFFSET      NULL,
+    draft_saved_at          DATETIMEOFFSET      NULL,
     revised_at              DATETIMEOFFSET      NULL,
     reviewed_at             DATETIMEOFFSET      NULL,
     finalized_at            DATETIMEOFFSET      NULL,
@@ -908,9 +913,9 @@ CREATE TABLE student_essays (
     -- ── Anti-gaming: reflection lock ──────────────────────────────────────────
     last_major_edit_at      DATETIMEOFFSET      NULL,       -- reset on >= 50-word net delta
     reflection_lock_until   DATETIMEOFFSET      NULL,       -- = last_major_edit_at + 48h
-    major_edit_word_delta   INT                 NOT NULL    DEFAULT 0,
-    total_edit_sessions     INT                 NOT NULL    DEFAULT 0,
-    edits_since_draft       INT                 NOT NULL    DEFAULT 0,
+    previous_word_count     INT                 NOT NULL    DEFAULT 0,
+    edit_session_count      INT                 NOT NULL    DEFAULT 0,
+    repetition_detected     BIT                 NOT NULL    DEFAULT 0,
 
     -- ── Reviewer confirmation ─────────────────────────────────────────────────
     -- reviewer_type: peer | teacher | counselor | tutor | parent | other
@@ -920,7 +925,7 @@ CREATE TABLE student_essays (
     reviewer_confirmed      BIT                 NOT NULL    DEFAULT 0,
 
     -- ── Finalization ──────────────────────────────────────────────────────────
-    finalized_confirmed     BIT                 NOT NULL    DEFAULT 0,
+    finalization_confirmed  BIT                 NOT NULL    DEFAULT 0,
 
     -- ── Audit timestamps ──────────────────────────────────────────────────────
     created_at              DATETIMEOFFSET      NOT NULL    DEFAULT SYSDATETIMEOFFSET(),
@@ -1142,8 +1147,27 @@ GO
 
 
 -- =============================================================================
+-- TABLE 16 — student_sessions
+-- Purpose : Refresh tokens and active session management
+-- =============================================================================
+CREATE TABLE student_sessions (
+    session_id         INT IDENTITY(1,1) PRIMARY KEY,
+    student_id         INT NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
+    refresh_token_hash VARCHAR(64) NOT NULL UNIQUE,
+    expires_at         DATETIMEOFFSET NOT NULL,
+    revoked_at         DATETIMEOFFSET NULL,
+    created_at         DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET()
+);
+GO
+
+CREATE INDEX IX_student_sessions_student ON student_sessions(student_id);
+CREATE INDEX IX_student_sessions_expires ON student_sessions(expires_at);
+GO
+
+
+-- =============================================================================
 -- END OF FILE 1/2 — continue with unilantern_sqlserver_part2_tables16to25.sql
--- File 2 covers: Tables 16–25
+-- File 2 covers: Tables 17–26
 -- colleges · student_saved_colleges · scholarships · student_saved_scholarships
 -- student_consents · notifications · notification_preferences
 -- feedback_submissions · analytics_events · audit_logs

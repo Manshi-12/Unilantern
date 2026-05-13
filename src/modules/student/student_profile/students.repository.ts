@@ -41,6 +41,8 @@ export class StudentsRepository {
 
   async getStudentProfileByStudentId(studentId: number): Promise<StudentProfileRecord | null> {
     const pool = await getPool();
+    
+    // First attempt: Get combined student and profile data
     const result = await pool
       .request()
       .input("student_id", sql.Int, studentId)
@@ -50,8 +52,8 @@ export class StudentsRepository {
         high_school_name: string | null;
         state_of_residence: string | null;
         profile_complete: boolean;
-        created_at: Date;
-        updated_at: Date;
+        sp_created_at: Date;
+        sp_updated_at: Date;
       }>(
         `SELECT TOP 1
             s.student_id,
@@ -63,29 +65,48 @@ export class StudentsRepository {
             sp.high_school_name,
             sp.state_of_residence,
             sp.profile_complete,
-            sp.created_at,
-            sp.updated_at
+            sp.created_at AS sp_created_at,
+            sp.updated_at AS sp_updated_at
           FROM ${STUDENTS_TABLE} s
-          INNER JOIN ${STUDENT_PROFILES_TABLE} sp
+          LEFT JOIN ${STUDENT_PROFILES_TABLE} sp
             ON s.student_id = sp.student_id
           WHERE s.student_id = @student_id`,
       );
+    
     const row = result.recordset[0];
-    return row
-      ? {
-          student_id: row.student_id,
-          full_name: row.full_name,
-          account_status: row.account_status,
-          school_id: row.school_id,
-          grade: row.grade,
-          graduation_year: row.graduation_year,
-          high_school_name: row.high_school_name,
-          state_of_residence: row.state_of_residence,
-          profile_complete: row.profile_complete,
-          created_at: row.created_at,
-          updated_at: row.updated_at,
-        }
-      : null;
+    if (!row) return null; // Student doesn't exist at all
+
+    // If student exists but profile is missing (INNER JOIN would have failed here)
+    if (row.graduation_year === null) {
+      const currentYear = new Date().getFullYear();
+      const defaultGradYear = currentYear + 1; // Default to next year
+
+      // Create a default profile record for this student
+      await pool.request()
+        .input("student_id", sql.Int, studentId)
+        .input("grad_year",  sql.SmallInt, defaultGradYear)
+        .query(
+          `INSERT INTO ${STUDENT_PROFILES_TABLE} (student_id, graduation_year)
+           VALUES (@student_id, @grad_year);`
+        );
+
+      // Recursive call to get the newly created profile
+      return this.getStudentProfileByStudentId(studentId);
+    }
+
+    return {
+      student_id: row.student_id,
+      full_name: row.full_name,
+      account_status: row.account_status,
+      school_id: row.school_id,
+      grade: row.grade,
+      graduation_year: row.graduation_year,
+      high_school_name: row.high_school_name,
+      state_of_residence: row.state_of_residence,
+      profile_complete: row.profile_complete,
+      created_at: row.sp_created_at,
+      updated_at: row.sp_updated_at,
+    };
   }
 
   async updateStudentFullName(studentId: number, fullName: string): Promise<void> {

@@ -164,7 +164,21 @@ export class ExtracurricularsRepository {
       .input("documented_real_world_output", sql.Bit, data.documented_real_world_output_toggle ?? false)
       .input("display_order", sql.SmallInt, displayOrder)
       .query<RawExtracurricularRow>(
-        `INSERT INTO ${EXTRACURRICULAR_ACTIVITIES_TABLE}
+        `DECLARE @OutputTable TABLE (
+            activity_id INT, student_id INT, activity_name VARCHAR(250), activity_type VARCHAR(10),
+            years_involved VARCHAR(15), involvement_level VARCHAR(20), activity_description VARCHAR(400),
+            impact_text VARCHAR(300), impact_level VARCHAR(20), display_order SMALLINT,
+            hours_per_week VARCHAR(10), experience_duration_weeks SMALLINT,
+            selective_acceptance_toggle BIT, external_org_toggle BIT, travel_or_residency_toggle BIT,
+            people_impacted INT, funds_raised INT, users_acquired INT, hours_delivered INT,
+            company_or_institution_count SMALLINT, competition_top_10_pct_toggle BIT,
+            finalist_or_winner_toggle BIT, publication_or_presented_toggle BIT,
+            policy_or_partnership_toggle BIT, structured_deliverable_toggle BIT,
+            language_or_skill_cert_toggle BIT, documented_real_world_output BIT,
+            formal_selection_toggle BIT, created_at DATETIMEOFFSET, updated_at DATETIMEOFFSET
+         );
+
+         INSERT INTO ${EXTRACURRICULAR_ACTIVITIES_TABLE}
           (student_id, activity_name, activity_type, years_involved, involvement_level,
            activity_description, impact_text, impact_level, hours_per_week,
            experience_duration_weeks, selective_acceptance_toggle, external_org_toggle,
@@ -173,7 +187,19 @@ export class ExtracurricularsRepository {
            publication_or_presented_toggle, policy_or_partnership_toggle,
            structured_deliverable_toggle, language_or_skill_cert_toggle,
            formal_selection_toggle, documented_real_world_output, display_order)
-         OUTPUT INSERTED.*
+         OUTPUT 
+            INSERTED.activity_id, INSERTED.student_id, INSERTED.activity_name, INSERTED.activity_type,
+            INSERTED.years_involved, INSERTED.involvement_level, INSERTED.activity_description,
+            INSERTED.impact_text, INSERTED.impact_level, INSERTED.display_order,
+            INSERTED.hours_per_week, INSERTED.experience_duration_weeks,
+            INSERTED.selective_acceptance_toggle, INSERTED.external_org_toggle, INSERTED.travel_or_residency_toggle,
+            INSERTED.people_impacted, INSERTED.funds_raised, INSERTED.users_acquired, INSERTED.hours_delivered,
+            INSERTED.company_or_institution_count, INSERTED.competition_top_10_pct_toggle,
+            INSERTED.finalist_or_winner_toggle, INSERTED.publication_or_presented_toggle,
+            INSERTED.policy_or_partnership_toggle, INSERTED.structured_deliverable_toggle,
+            INSERTED.language_or_skill_cert_toggle, INSERTED.documented_real_world_output,
+            INSERTED.formal_selection_toggle, INSERTED.created_at, INSERTED.updated_at
+         INTO @OutputTable
          VALUES
           (@student_id, @activity_name, @activity_type, @years_involved, @involvement_level,
            @activity_description, @impact_text, @impact_level, @hours_per_week,
@@ -182,7 +208,9 @@ export class ExtracurricularsRepository {
            @hours_delivered, @competition_top_10_pct_toggle, @finalist_or_winner_toggle,
            @publication_or_presented_toggle, @policy_or_partnership_toggle,
            @structured_deliverable_toggle, @language_or_skill_cert_toggle,
-           @formal_selection_toggle, @documented_real_world_output, @display_order);`,
+           @formal_selection_toggle, @documented_real_world_output, @display_order);
+
+         SELECT * FROM @OutputTable;`,
       );
     const row = result.recordset[0];
     if (!row) throw new Error("Failed to insert extracurricular activity");

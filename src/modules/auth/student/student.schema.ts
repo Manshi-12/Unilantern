@@ -19,17 +19,31 @@ const otpCode = z
   .string()
   .regex(otpRegex, "OTP must be a 6-digit numeric string");
 
+const fullName = z.string().trim().min(1, "Full name is required").max(200);
+
+const requiredAgeConfirmation = z
+  .boolean()
+  .refine((v) => v === true, "confirms_age_13_plus must be true");
+
+const inviteToken = z
+  .string()
+  .trim()
+  .min(1, "invite_token cannot be empty")
+  .max(500, "invite_token must be 500 characters or fewer")
+  .nullish()
+  .transform((v) => v ?? undefined);
+
 const currentYear = new Date().getUTCFullYear();
 
 export const registerInitSchema = z.object({
   phone_number: phoneNumber,
   email: emailAddress,
-  full_name: z.string().trim().min(1, "Full name is required").max(200),
+  full_name: fullName,
   graduation_year: z
     .number()
     .int()
-    .min(currentYear, `graduation_year must be >= ${currentYear}`)
-    .max(currentYear + 6, `graduation_year must be <= ${currentYear + 6}`),
+    .min(currentYear - 20, `graduation_year must be >= ${currentYear - 20}`)
+    .max(currentYear + 10, `graduation_year must be <= ${currentYear + 10}`),
   date_of_birth: z
     .string()
     .regex(isoDateRegex, "date_of_birth must be YYYY-MM-DD")
@@ -37,11 +51,9 @@ export const registerInitSchema = z.object({
     .refine((v) => computeAge(v) >= 13, "Must be at least 13 years old"),
   high_school_name: z.string().trim().min(1).max(200),
   state_of_residence: z.string().trim().min(1).max(100),
-  confirms_age_13_plus: z
-    .boolean()
-    .refine((v) => v === true, "confirms_age_13_plus must be true"),
+  confirms_age_13_plus: requiredAgeConfirmation,
   confirms_parental_permission: z.boolean(),
-  invite_token: z.string().nullish().transform((v) => v ?? undefined),
+  invite_token: inviteToken,
   college_data_share: z.boolean().optional().default(true),
 });
 
@@ -57,6 +69,51 @@ export const loginSendOtpSchema = z.object({
 export const loginVerifySchema = z.object({
   phone_number: phoneNumber,
   otp_code: otpCode,
+});
+
+// ── New schemas for 1.1 – 1.8 ─────────────────────────────────────────────
+
+export const sendOtpSchema = z.object({
+  phone_number: phoneNumber,
+  purpose: z.enum(["signup", "login"]),
+});
+
+export const verifyOtpSchema = z.object({
+  phone_number: phoneNumber,
+  otp_code: otpCode,
+  purpose: z.enum(["signup", "login"]),
+});
+
+export const validateInviteTokenSchema = z.object({
+  invite_token: z.string().trim().min(1, "invite_token is required").max(500),
+});
+
+export const signupSchema = z.object({
+  phone_number: phoneNumber,
+  otp_code: otpCode,
+  email: emailAddress,
+  full_name: fullName,
+  graduation_year: z.number().int(),
+  date_of_birth: z.string().regex(isoDateRegex),
+  high_school_name: z.string().trim().min(1).max(200),
+  state_of_residence: z.string().trim().min(1).max(100),
+  confirms_age_13_plus: requiredAgeConfirmation,
+  confirms_parental_permission: z.boolean(),
+  invite_token: inviteToken,
+  college_data_share: z.boolean().optional().default(true),
+});
+
+export const loginSchema = z.object({
+  phone_number: phoneNumber,
+  otp_code: otpCode,
+});
+
+export const refreshTokenSchema = z.object({
+  refresh_token: z.string().min(1, "refresh_token is required"),
+});
+
+export const logoutSchema = z.object({
+  refresh_token: z.string().optional(),
 });
 
 export function computeAge(dobIso: string): number {
