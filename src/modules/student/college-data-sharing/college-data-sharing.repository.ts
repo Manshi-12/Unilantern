@@ -8,7 +8,7 @@ type RawRow = {
 };
 
 export class CollegeDataSharingRepository {
-  // ── Update opt-out preference and return the new state ──────────────────
+  // ── Update college data sharing preference (`college_data_sharing_enabled` on students) ──────────────────
   async updatePreference(
     studentId: number,
     enabled: boolean,

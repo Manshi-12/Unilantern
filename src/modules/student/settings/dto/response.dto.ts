@@ -3,8 +3,3 @@ export interface FeedbackSubmittedResponseDto {
   confirmation_message: string;
   created_at: string;
 }
-
-export interface DeleteAccountResponseDto {
-  deleted: boolean;
-  message: string;
-}

@@ -1,9 +1,6 @@
 import { SettingsRepository } from "./settings.repository.js";
 import type { SubmitFeedbackRequestDto } from "./dto/request.dto.js";
-import type { 
-  FeedbackSubmittedResponseDto, 
-  DeleteAccountResponseDto 
-} from "./dto/response.dto.js";
+import type { FeedbackSubmittedResponseDto } from "./dto/response.dto.js";
 
 export class SettingsService {
   constructor(private readonly settingsRepository: SettingsRepository) {}
@@ -37,15 +34,6 @@ export class SettingsService {
       feedback_id: record.feedback_id,
       confirmation_message: "Thank you for your feedback! We've received it and will review it soon.",
       created_at: record.created_at.toISOString(),
-    };
-  }
-
-  async deleteAccount(userId: number): Promise<DeleteAccountResponseDto> {
-    await this.settingsRepository.softDeleteAccount(userId);
-    
-    return {
-      deleted: true,
-      message: "Your account has been scheduled for deletion. You will be logged out immediately. Data purge will follow per our retention policy.",
     };
   }
 

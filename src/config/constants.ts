@@ -1,5 +1,8 @@
 export const OTP_TTL_SECONDS = 60;
 export const OTP_MAX_ATTEMPTS = 5;
+
+/** Short-lived JWT returned from POST /otp/verify; used by /signup and /login. */
+export const PHONE_VERIFY_TOKEN_TTL_SECONDS = 600;
 export const OTP_CODE_LENGTH = 6;
 export const BCRYPT_COST = 10;
 

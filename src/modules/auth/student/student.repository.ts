@@ -141,8 +141,8 @@ export class StudentRepository {
     if (data.confirms_parental_permission !== undefined) {
       consents.push({ type: "parental_13_17", status: data.confirms_parental_permission ? "granted" : "revoked" });
     }
-    if (data.college_data_share !== undefined) {
-      consents.push({ type: "college", status: data.college_data_share ? "granted" : "revoked" });
+    if (data.college_data_share_consent !== undefined) {
+      consents.push({ type: "college", status: data.college_data_share_consent ? "granted" : "revoked" });
     }
 
     for (const c of consents) {

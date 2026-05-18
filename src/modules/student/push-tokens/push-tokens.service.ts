@@ -19,17 +19,19 @@ export class PushTokensService {
     const pushTokenId = await this.repo.registerToken({
       user_id: studentId,
       user_role: "student",
-      device_token: dto.device_token,
+      device_id: dto.device_id,
+      push_token: dto.push_token,
       platform: dto.platform,
       device_name: dto.device_name ?? null,
     });
 
     console.log(
-      `[PushTokensService] Registered push token #${pushTokenId} (${dto.platform}) for student ${studentId}`,
+      `[PushTokensService] Registered push token #${pushTokenId} (${dto.platform}, device_id=${dto.device_id}) for student ${studentId}`,
     );
 
     return {
       push_token_id: pushTokenId,
+      device_id: dto.device_id,
       platform: dto.platform,
       device_name: dto.device_name ?? null,
       registered: true,
@@ -42,11 +44,7 @@ export class PushTokensService {
     studentId: number,
     dto: DeregisterPushTokenDto,
   ): Promise<DeregisterPushTokenResponseDto> {
-    const removed = await this.repo.deregisterToken(
-      studentId,
-      "student",
-      dto.device_token,
-    );
+    const removed = await this.repo.deregisterToken(studentId, "student", dto.device_id);
 
     if (!removed) {
       throw new AuthError(
@@ -56,16 +54,13 @@ export class PushTokensService {
       );
     }
 
-    // Show only prefix for security
-    const prefix = dto.device_token.slice(0, 8) + "...";
-
     console.log(
-      `[PushTokensService] Deregistered push token ${prefix} for student ${studentId}`,
+      `[PushTokensService] Deregistered push token device_id=${dto.device_id} for student ${studentId}`,
     );
 
     return {
       deregistered: true,
-      device_token_prefix: prefix,
+      device_id: dto.device_id,
     };
   }
 }

@@ -11,7 +11,9 @@ export const linkSchoolSchema = z.object({
   school_email: z.string().trim().email().max(320).optional(),
 });
 
-export const mergeConfirmSchema = z.object({
-  confirmed_student_id: z.coerce.number().int().positive(),
-  school_id: z.coerce.number().int().positive(),
-});
+export const mergeConfirmSchema = z
+  .object({
+    confirmed_student_id: z.coerce.number().int().positive(),
+    school_id: z.coerce.number().int().positive(),
+  })
+  .strict();

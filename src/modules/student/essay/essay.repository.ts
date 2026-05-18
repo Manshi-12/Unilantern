@@ -114,7 +114,7 @@ export class EssayRepository {
         `DECLARE @OutputTable TABLE (
            essay_id INT, student_id INT, essay_prompt NVARCHAR(MAX),
            word_count INT, essay_status VARCHAR(20), not_started_reason VARCHAR(20),
-           reviewer_type VARCHAR(10), reviewer_confirmed BIT,
+           reviewer_type VARCHAR(25), reviewer_confirmed BIT,
            last_major_edit_at DATETIMEOFFSET, reflection_lock_until DATETIMEOFFSET,
            draft_saved_at DATETIMEOFFSET, revised_at DATETIMEOFFSET, reviewed_at DATETIMEOFFSET,
            finalized_at DATETIMEOFFSET, finalization_confirmed BIT,
@@ -162,7 +162,7 @@ export class EssayRepository {
         `DECLARE @OutputTable TABLE (
            essay_id INT, student_id INT, essay_prompt NVARCHAR(MAX),
            word_count INT, essay_status VARCHAR(20), not_started_reason VARCHAR(20),
-           reviewer_type VARCHAR(10), reviewer_confirmed BIT,
+           reviewer_type VARCHAR(25), reviewer_confirmed BIT,
            last_major_edit_at DATETIMEOFFSET, reflection_lock_until DATETIMEOFFSET,
            draft_saved_at DATETIMEOFFSET, revised_at DATETIMEOFFSET, reviewed_at DATETIMEOFFSET,
            finalized_at DATETIMEOFFSET, finalization_confirmed BIT,
@@ -217,7 +217,7 @@ export class EssayRepository {
         `DECLARE @OutputTable TABLE (
            essay_id INT, student_id INT, essay_prompt NVARCHAR(MAX),
            word_count INT, essay_status VARCHAR(20), not_started_reason VARCHAR(20),
-           reviewer_type VARCHAR(10), reviewer_confirmed BIT,
+           reviewer_type VARCHAR(25), reviewer_confirmed BIT,
            last_major_edit_at DATETIMEOFFSET, reflection_lock_until DATETIMEOFFSET,
            draft_saved_at DATETIMEOFFSET, revised_at DATETIMEOFFSET, reviewed_at DATETIMEOFFSET,
            finalized_at DATETIMEOFFSET, finalization_confirmed BIT,
@@ -257,13 +257,13 @@ export class EssayRepository {
     const result = await pool
       .request()
       .input("student_id",        sql.Int,        studentId)
-      .input("reviewer_type",     sql.VarChar(10), data.reviewer_type)
+      .input("reviewer_type",     sql.VarChar(25), data.reviewer_type)
       .input("reviewer_confirmed",sql.Bit,         data.reviewer_confirmed ? 1 : 0)
       .query<RawEssayRow>(
         `DECLARE @OutputTable TABLE (
            essay_id INT, student_id INT, essay_prompt NVARCHAR(MAX),
            word_count INT, essay_status VARCHAR(20), not_started_reason VARCHAR(20),
-           reviewer_type VARCHAR(10), reviewer_confirmed BIT,
+           reviewer_type VARCHAR(25), reviewer_confirmed BIT,
            last_major_edit_at DATETIMEOFFSET, reflection_lock_until DATETIMEOFFSET,
            draft_saved_at DATETIMEOFFSET, revised_at DATETIMEOFFSET, reviewed_at DATETIMEOFFSET,
            finalized_at DATETIMEOFFSET, finalization_confirmed BIT,
@@ -306,7 +306,7 @@ export class EssayRepository {
         `DECLARE @OutputTable TABLE (
            essay_id INT, student_id INT, essay_prompt NVARCHAR(MAX),
            word_count INT, essay_status VARCHAR(20), not_started_reason VARCHAR(20),
-           reviewer_type VARCHAR(10), reviewer_confirmed BIT,
+           reviewer_type VARCHAR(25), reviewer_confirmed BIT,
            last_major_edit_at DATETIMEOFFSET, reflection_lock_until DATETIMEOFFSET,
            draft_saved_at DATETIMEOFFSET, revised_at DATETIMEOFFSET, reviewed_at DATETIMEOFFSET,
            finalized_at DATETIMEOFFSET, finalization_confirmed BIT,

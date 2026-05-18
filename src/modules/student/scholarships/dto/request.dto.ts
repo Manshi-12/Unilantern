@@ -1,4 +1,4 @@
-export type ScholarshipType = "merit" | "need" | "athletic" | "demographic" | "major" | "other";
+export type ScholarshipType = "merit" | "need" | "athletic" | "demographic" | "major" | "project" | "other";
 export type ScholarshipSort = "deadline_asc" | "deadline_desc" | "amount_desc";
 
 export interface ScholarshipsFilterRequestDto {

@@ -7,7 +7,8 @@ type RawPushTokenRow = {
   push_token_id: number;
   user_id: number;
   user_role: string;
-  device_token: string;
+  device_id: string | null;
+  push_token: string;
   platform: string;
   device_name: string | null;
   is_active: boolean;
@@ -25,13 +26,13 @@ function mapPushToken(row: RawPushTokenRow): PushTokenRecord {
 // ═════════════════════════════════════════════════════════════════════════════
 
 export class PushTokensRepository {
-
-  // ── Register (upsert) a push token ───────────────────────────────────────
+  // ── Register (upsert) a push token — keyed by user + role + device_id ───────
 
   async registerToken(data: {
     user_id: number;
     user_role: string;
-    device_token: string;
+    device_id: string;
+    push_token: string;
     platform: string;
     device_name: string | null;
   }): Promise<number> {
@@ -40,45 +41,47 @@ export class PushTokensRepository {
       .request()
       .input("user_id", sql.Int, data.user_id)
       .input("user_role", sql.VarChar(30), data.user_role)
-      .input("device_token", sql.VarChar(500), data.device_token)
+      .input("device_id", sql.VarChar(128), data.device_id)
+      .input("push_token", sql.VarChar(500), data.push_token)
       .input("platform", sql.VarChar(20), data.platform)
       .input("device_name", sql.NVarChar(200), data.device_name)
       .query<{ push_token_id: number }>(
         `MERGE ${PUSH_TOKENS_TABLE} AS target
-         USING (SELECT @user_id AS uid, @user_role AS urole, @device_token AS dt) AS source
+         USING (SELECT @user_id AS uid, @user_role AS urole, @device_id AS did) AS source
          ON target.user_id = source.uid
             AND target.user_role = source.urole
-            AND target.device_token = source.dt
+            AND target.device_id = source.did
          WHEN MATCHED THEN
-           UPDATE SET is_active    = 1,
+           UPDATE SET push_token   = @push_token,
                       platform     = @platform,
                       device_name  = @device_name,
+                      is_active    = 1,
                       last_used_at = SYSDATETIMEOFFSET(),
                       updated_at   = SYSDATETIMEOFFSET()
          WHEN NOT MATCHED THEN
-           INSERT (user_id, user_role, device_token, platform, device_name)
-           VALUES (@user_id, @user_role, @device_token, @platform, @device_name)
+           INSERT (user_id, user_role, device_id, push_token, platform, device_name)
+           VALUES (@user_id, @user_role, @device_id, @push_token, @platform, @device_name)
          OUTPUT INSERTED.push_token_id;`,
       );
     return result.recordset[0].push_token_id;
   }
 
-  // ── Deregister (deactivate) a push token ─────────────────────────────────
+  // ── Deregister (deactivate) by device_id ───────────────────────────────────
 
-  async deregisterToken(userId: number, userRole: string, deviceToken: string): Promise<boolean> {
+  async deregisterToken(userId: number, userRole: string, deviceId: string): Promise<boolean> {
     const pool = await getPool();
     const result = await pool
       .request()
       .input("user_id", sql.Int, userId)
       .input("user_role", sql.VarChar(30), userRole)
-      .input("device_token", sql.VarChar(500), deviceToken)
+      .input("device_id", sql.VarChar(128), deviceId)
       .query(
         `UPDATE ${PUSH_TOKENS_TABLE}
          SET is_active  = 0,
              updated_at = SYSDATETIMEOFFSET()
          WHERE user_id = @user_id
            AND user_role = @user_role
-           AND device_token = @device_token;`,
+           AND device_id = @device_id;`,
       );
     return (result.rowsAffected[0] ?? 0) > 0;
   }

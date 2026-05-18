@@ -1,9 +1,14 @@
-import { OTP_MAX_ATTEMPTS, OTP_TTL_SECONDS, REFRESH_TOKEN_TTL_SECONDS } from "../../../config/constants.js";
+import {
+  OTP_MAX_ATTEMPTS,
+  OTP_TTL_SECONDS,
+  PHONE_VERIFY_TOKEN_TTL_SECONDS,
+  REFRESH_TOKEN_TTL_SECONDS,
+} from "../../../config/constants.js";
 import { AuthError } from "../../../shared/errors/auth-error.js";
 import { ConflictError } from "../../../shared/errors/conflict-error.js";
 import { AuthErrorCode } from "../../../shared/response/error-codes.js";
 import { generateOtp, hashOtp, verifyOtpHash } from "../../../shared/utils/otp.js";
-import { signAccessToken } from "../../../shared/utils/jwt.js";
+import { signAccessToken, signPhoneVerifyToken, verifyPhoneVerifyToken } from "../../../shared/utils/jwt.js";
 import { maskPhone, normalizePhone } from "../../../shared/utils/phone.js";
 import { generateRefreshToken, hashRefreshToken } from "../../../shared/utils/token.js";
 import { computeAge } from "./student.schema.js";
@@ -23,6 +28,7 @@ import type {
 } from "./dto/request.dto.js";
 import type {
   StudentRegisterInitResponseDto,
+  StudentRegisterVerifyResponseDto,
   StudentAuthResponseDto,
   OtpSentResponseDto,
   OtpVerifyResponseDto,
@@ -47,7 +53,7 @@ interface PendingRegistration {
   confirms_age_13_plus: boolean;
   confirms_parental_permission: boolean;
   invite_token?: string;
-  college_data_share: boolean;
+  college_data_share_consent: boolean;
   expiresAt: number;
 }
 
@@ -104,7 +110,7 @@ export class StudentService {
       confirms_age_13_plus: dto.confirms_age_13_plus,
       confirms_parental_permission: dto.confirms_parental_permission,
       invite_token: dto.invite_token,
-      college_data_share: dto.college_data_share ?? true,
+      college_data_share_consent: dto.college_data_share_consent ?? true,
       expiresAt: Date.now() + OTP_TTL_SECONDS * 1000,
     });
 
@@ -126,7 +132,7 @@ export class StudentService {
 
   // ── REGISTRATION: Step 2 ─────────────────────────────────────────────────
   // Verify OTP -> insert student -> return JWT
-  async registerVerify(dto: StudentRegisterVerifyDto): Promise<StudentAuthResponseDto> {
+  async registerVerify(dto: StudentRegisterVerifyDto): Promise<StudentRegisterVerifyResponseDto> {
     const phone = normalizePhone(dto.phone_number);
 
     await this.consumeOtp(phone, dto.otp_code, "signup");
@@ -165,10 +171,14 @@ export class StudentService {
       state_of_residence: pending.state_of_residence,
       confirms_age_13_plus: pending.confirms_age_13_plus,
       confirms_parental_permission: pending.confirms_parental_permission,
-      college_data_share: pending.college_data_share,
+      college_data_share_consent: pending.college_data_share_consent,
     });
 
-    return this.buildAuthResponse(created);
+    return this.buildRegisterVerifyResponse(created, [
+      ...(pending.confirms_age_13_plus ? ["age_13plus"] : []),
+      ...(pending.confirms_parental_permission ? ["parental_13_17"] : []),
+      ...(pending.college_data_share_consent ? ["college"] : []),
+    ]);
   }
 
   // ── LOGIN: Step 1 ─────────────────────────────────────────────────────────
@@ -252,7 +262,7 @@ export class StudentService {
     return { otp_sent: true, phone_masked: maskPhone(phone), expires_in_seconds: OTP_TTL_SECONDS };
   }
 
-  // 1.2 POST /otp/verify — Verify OTP (pre-signup check, NON-consuming)
+  // 1.2 POST /otp/verify — Verify OTP, consume it, return short-lived phone_verify_token for /signup or /login
   async verifyOtp(dto: VerifyOtpDto): Promise<OtpVerifyResponseDto> {
     const phone = normalizePhone(dto.phone_number);
     const otp = await this.otpRepo.findLatestValidOtp(phone, dto.purpose);
@@ -264,14 +274,22 @@ export class StudentService {
       throw new AuthError(AuthErrorCode.OTP_TOO_MANY_ATTEMPTS, "Too many attempts. Request a new OTP.", 429);
     }
 
-    await this.otpRepo.incrementAttempts(otp.otp_id);
-
     const ok = await verifyOtpHash(dto.otp_code, otp.otp_code_hash);
     if (!ok) {
+      await this.otpRepo.incrementAttempts(otp.otp_id);
       throw new AuthError(AuthErrorCode.OTP_INVALID, "Invalid OTP code", 401);
     }
 
-    return { verified: true, phone_number: phone, purpose: dto.purpose };
+    await this.otpRepo.markUsed(otp.otp_id);
+    const phone_verify_token = await signPhoneVerifyToken(phone, dto.purpose);
+
+    return {
+      verified: true,
+      phone_number: phone,
+      purpose: dto.purpose,
+      phone_verify_token,
+      expires_in_seconds: PHONE_VERIFY_TOKEN_TTL_SECONDS,
+    };
   }
 
   // 1.3 POST /invite/validate — Validate invite token
@@ -284,21 +302,18 @@ export class StudentService {
     };
   }
 
-  // 1.4 POST /signup — Complete student signup (consumes OTP, creates account + session)
+  // 1.4 POST /signup — Complete signup using phone_verify_token from /otp/verify (OTP already consumed there)
   async signup(dto: SignupDto): Promise<TokenPairResponseDto> {
-    const phone = normalizePhone(dto.phone_number);
-    const email = normalizeEmail(dto.email);
+    const { phone: rawPhone, purpose } = await verifyPhoneVerifyToken(dto.phone_verify_token);
+    if (purpose !== "signup") {
+      throw new AuthError(AuthErrorCode.TOKEN_INVALID, "Phone verification token is not valid for signup", 400);
+    }
+    const phone = normalizePhone(rawPhone);
 
     const existing = await this.studentRepo.findByPhone(phone);
     if (existing) {
       throw new ConflictError(AuthErrorCode.PHONE_ALREADY_REGISTERED, "Phone number is already registered");
     }
-    const existingEmail = await this.studentRepo.findByEmail(email);
-    if (existingEmail) {
-      throw new ConflictError(AuthErrorCode.EMAIL_ALREADY_REGISTERED, "Email address is already registered");
-    }
-
-    await this.consumeOtp(phone, dto.otp_code, "signup");
 
     const age = computeAge(dto.date_of_birth);
     if (age < 13) {
@@ -307,12 +322,15 @@ export class StudentService {
     if (!dto.confirms_age_13_plus) {
       throw new AuthError(AuthErrorCode.AGE_CONFIRMATION_REQUIRED, "Age confirmation is required", 400);
     }
+    if (age >= 13 && age <= 17 && !dto.confirms_parental_permission) {
+      throw new AuthError(AuthErrorCode.PARENTAL_CONSENT_REQUIRED, "Parental consent is required for minors", 403);
+    }
 
     const inviteResolution = await this.resolveInviteToken(dto.invite_token);
 
     const created = await this.studentRepo.createStudent({
       phone_number: phone,
-      email,
+      email: null,
       full_name: dto.full_name.trim(),
       is_active: true,
       phone_verified: true,
@@ -322,18 +340,22 @@ export class StudentService {
       graduation_year: dto.graduation_year,
       date_of_birth: dto.date_of_birth,
       high_school_name: dto.high_school_name,
-      state_of_residence: dto.state_of_residence,
+      state_of_residence: dto.state_of_residence.trim(),
       confirms_age_13_plus: dto.confirms_age_13_plus,
       confirms_parental_permission: dto.confirms_parental_permission,
-      college_data_share: dto.college_data_share ?? true,
+      college_data_share_consent: dto.college_data_share_consent,
     });
 
     return this.buildTokenPairResponse(created);
   }
 
-  // 1.5 POST /login — Login with phone + OTP (consumes OTP, creates session)
+  // 1.5 POST /login — Login with phone_verify_token from /otp/verify (OTP already consumed there)
   async login(dto: LoginDto): Promise<TokenPairResponseDto> {
-    const phone = normalizePhone(dto.phone_number);
+    const { phone: rawPhone, purpose } = await verifyPhoneVerifyToken(dto.phone_verify_token);
+    if (purpose !== "login") {
+      throw new AuthError(AuthErrorCode.TOKEN_INVALID, "Phone verification token is not valid for login", 400);
+    }
+    const phone = normalizePhone(rawPhone);
 
     const student = await this.studentRepo.findByPhone(phone);
     if (!student) {
@@ -343,7 +365,6 @@ export class StudentService {
       throw new AuthError(AuthErrorCode.ACCOUNT_INACTIVE, "Account is inactive", 403);
     }
 
-    await this.consumeOtp(phone, dto.otp_code, "login");
     await this.studentRepo.updateLastLogin(student.student_id);
 
     return this.buildTokenPairResponse(student);
@@ -467,6 +488,35 @@ export class StudentService {
       school_id: student.school_id != null ? String(student.school_id) : null,
       email: student.email,
       full_name: student.full_name,
+    };
+  }
+
+  private async buildRegisterVerifyResponse(
+    student: StudentRecord,
+    consentsRecorded: string[],
+  ): Promise<StudentRegisterVerifyResponseDto> {
+    const access_token = await signAccessToken({
+      sub: String(student.student_id),
+      role: student.role,
+      school_id: student.school_id,
+    });
+
+    const rawRefreshToken = generateRefreshToken();
+    const tokenHash = hashRefreshToken(rawRefreshToken);
+    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_SECONDS * 1000);
+
+    await this.sessionRepo.createSession({
+      student_id: student.student_id,
+      refresh_token_hash: tokenHash,
+      expires_at: expiresAt,
+    });
+
+    return {
+      student_id: String(student.student_id),
+      access_token,
+      refresh_token: rawRefreshToken,
+      account_status: student.account_status,
+      consents_recorded: consentsRecorded,
     };
   }
 

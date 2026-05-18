@@ -1,6 +1,5 @@
 import { sql, getPool } from "../../../db/client.js";
 import { FEEDBACK_SUBMISSIONS_TABLE } from "../../../db/schema/feedback-submissions.js";
-import { STUDENTS_TABLE } from "../../../db/schema/students.js";
 import type { FeedbackSubmission, FeedbackType } from "./settings.types.js";
 
 export class SettingsRepository {
@@ -48,15 +47,4 @@ export class SettingsRepository {
     return result.recordset[0];
   }
 
-  async softDeleteAccount(studentId: number): Promise<void> {
-    const pool = await getPool();
-    await pool.request()
-      .input("student_id", sql.Int, studentId)
-      .query(`
-        UPDATE ${STUDENTS_TABLE}
-        SET is_active = 0,
-            updated_at = SYSDATETIMEOFFSET()
-        WHERE student_id = @student_id
-      `);
-  }
 }

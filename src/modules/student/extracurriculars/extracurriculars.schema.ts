@@ -32,14 +32,35 @@ export const extracurricularUpdateSchema = extracurricularCreateSchema.partial()
   { message: "At least one field is required" }
 );
 
-export const extracurricularReorderSchema = z.object({
-  activities: z.array(
-    z.object({
-      activity_id: z.string(),
-      display_order: z.number().int().min(1),
-    })
-  ).min(1),
+function normalizeExtracurricularReorderBody(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  const o = { ...(raw as Record<string, unknown>) };
+  if ("activities" in o && !("order" in o)) {
+    o.order = o.activities;
+    delete o.activities;
+  }
+  if (Array.isArray(o.order)) {
+    o.order = (o.order as Record<string, unknown>[]).map((row) => {
+      const r = { ...row };
+      if ("activity_id" in r && !("ec_id" in r)) {
+        r.ec_id = r.activity_id;
+        delete r.activity_id;
+      }
+      return r;
+    });
+  }
+  return o;
+}
+
+const reorderItemSchema = z.object({
+  ec_id: z.coerce.number().int().positive(),
+  display_order: z.number().int().min(1),
 });
+
+export const extracurricularReorderSchema = z.preprocess(
+  normalizeExtracurricularReorderBody,
+  z.object({ order: z.array(reorderItemSchema).min(1) }).strict(),
+);
 
 export const extracurricularListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional().default(50),

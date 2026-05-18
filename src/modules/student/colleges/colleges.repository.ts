@@ -178,17 +178,67 @@ export class CollegesRepository {
       .input("act_25th",         sql.SmallInt,      data.act_25th)
       .input("act_75th",         sql.SmallInt,      data.act_75th)
       .query<RawCollegeRow>(
-        `INSERT INTO ${COLLEGES_TABLE}
+        `DECLARE @OutputTable TABLE (
+           college_id INT,
+           name VARCHAR(300),
+           city VARCHAR(150) NULL,
+           state VARCHAR(100) NULL,
+           region VARCHAR(100) NULL,
+           institution_type VARCHAR(50) NULL,
+           is_public BIT NULL,
+           website_url VARCHAR(500) NULL,
+           acceptance_rate DECIMAL(5, 2) NULL,
+           is_test_optional BIT,
+           gpa_25th DECIMAL(4, 2) NULL,
+           gpa_75th DECIMAL(4, 2) NULL,
+           sat_25th SMALLINT NULL,
+           sat_75th SMALLINT NULL,
+           act_25th SMALLINT NULL,
+           act_75th SMALLINT NULL,
+           logo_url VARCHAR(500) NULL,
+           data_source VARCHAR(100) NULL,
+           last_data_refresh DATETIMEOFFSET NULL,
+           is_active BIT,
+           created_at DATETIMEOFFSET,
+           updated_at DATETIMEOFFSET
+         );
+
+         INSERT INTO ${COLLEGES_TABLE}
            (name, city, state, website_url, acceptance_rate,
             is_test_optional, is_public, logo_url, data_source,
             sat_25th, sat_75th, act_25th, act_75th,
             last_data_refresh)
-         OUTPUT INSERTED.*
+         OUTPUT
+           INSERTED.college_id,
+           INSERTED.name,
+           INSERTED.city,
+           INSERTED.state,
+           INSERTED.region,
+           INSERTED.institution_type,
+           INSERTED.is_public,
+           INSERTED.website_url,
+           INSERTED.acceptance_rate,
+           INSERTED.is_test_optional,
+           INSERTED.gpa_25th,
+           INSERTED.gpa_75th,
+           INSERTED.sat_25th,
+           INSERTED.sat_75th,
+           INSERTED.act_25th,
+           INSERTED.act_75th,
+           INSERTED.logo_url,
+           INSERTED.data_source,
+           INSERTED.last_data_refresh,
+           INSERTED.is_active,
+           INSERTED.created_at,
+           INSERTED.updated_at
+         INTO @OutputTable
          VALUES
            (@name, @city, @state, @website_url, @acceptance_rate,
             @is_test_optional, @is_public, @logo_url, @data_source,
             @sat_25th, @sat_75th, @act_25th, @act_75th,
-            SYSDATETIMEOFFSET());`,
+            SYSDATETIMEOFFSET());
+
+         SELECT * FROM @OutputTable;`,
       );
 
     const row = result.recordset[0];
@@ -236,10 +286,60 @@ export class CollegesRepository {
     }
 
     const result = await req.query<RawCollegeRow>(
-      `UPDATE ${COLLEGES_TABLE}
+      `DECLARE @OutputTable TABLE (
+         college_id INT,
+         name VARCHAR(300),
+         city VARCHAR(150) NULL,
+         state VARCHAR(100) NULL,
+         region VARCHAR(100) NULL,
+         institution_type VARCHAR(50) NULL,
+         is_public BIT NULL,
+         website_url VARCHAR(500) NULL,
+         acceptance_rate DECIMAL(5, 2) NULL,
+         is_test_optional BIT,
+         gpa_25th DECIMAL(4, 2) NULL,
+         gpa_75th DECIMAL(4, 2) NULL,
+         sat_25th SMALLINT NULL,
+         sat_75th SMALLINT NULL,
+         act_25th SMALLINT NULL,
+         act_75th SMALLINT NULL,
+         logo_url VARCHAR(500) NULL,
+         data_source VARCHAR(100) NULL,
+         last_data_refresh DATETIMEOFFSET NULL,
+         is_active BIT,
+         created_at DATETIMEOFFSET,
+         updated_at DATETIMEOFFSET
+       );
+
+       UPDATE ${COLLEGES_TABLE}
           SET ${setClauses.join(", ")}
-        OUTPUT INSERTED.*
-        WHERE college_id = @college_id;`,
+        OUTPUT
+          INSERTED.college_id,
+          INSERTED.name,
+          INSERTED.city,
+          INSERTED.state,
+          INSERTED.region,
+          INSERTED.institution_type,
+          INSERTED.is_public,
+          INSERTED.website_url,
+          INSERTED.acceptance_rate,
+          INSERTED.is_test_optional,
+          INSERTED.gpa_25th,
+          INSERTED.gpa_75th,
+          INSERTED.sat_25th,
+          INSERTED.sat_75th,
+          INSERTED.act_25th,
+          INSERTED.act_75th,
+          INSERTED.logo_url,
+          INSERTED.data_source,
+          INSERTED.last_data_refresh,
+          INSERTED.is_active,
+          INSERTED.created_at,
+          INSERTED.updated_at
+        INTO @OutputTable
+        WHERE college_id = @college_id;
+
+       SELECT * FROM @OutputTable;`,
     );
     const row = result.recordset[0];
     if (!row) throw new Error("Update returned no row — college_id not found");

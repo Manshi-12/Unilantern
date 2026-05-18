@@ -56,10 +56,10 @@ BEGIN
                                  'EMPTY','TOO_SHORT','NOT_SAVED','REPETITIVE'
                                )),
 
-    reviewer_type           VARCHAR(10)        NULL
+    reviewer_type           VARCHAR(25)        NULL
                                CONSTRAINT chk_reviewer_type
                                CHECK (reviewer_type IS NULL OR reviewer_type IN (
-                                 'advisor','peer','mentor'
+                                 'peer','teacher','counselor','tutor','parent','other'
                                )),
 
     reviewer_confirmed      BIT                NOT NULL DEFAULT 0,

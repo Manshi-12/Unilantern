@@ -48,7 +48,7 @@ export interface OtpRecord {
 
 export interface CreateStudentData {
   phone_number: string;
-  email: string;
+  email: string | null;
   full_name: string;
   is_active: boolean;
   phone_verified: boolean;
@@ -63,7 +63,7 @@ export interface CreateStudentData {
   // consent flags
   confirms_age_13_plus?: boolean;
   confirms_parental_permission?: boolean;
-  college_data_share?: boolean;
+  college_data_share_consent?: boolean;
 }
 
 export interface CreateOtpData {

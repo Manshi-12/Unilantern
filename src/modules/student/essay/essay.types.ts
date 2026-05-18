@@ -1,6 +1,6 @@
 export type EssayStatus = "not_started" | "drafted" | "revised" | "reviewed" | "finalized";
 export type NotStartedReason = "EMPTY" | "TOO_SHORT" | "NOT_SAVED" | "REPETITIVE";
-export type ReviewerType = "advisor" | "peer" | "mentor";
+export type ReviewerType = "peer" | "teacher" | "counselor" | "tutor" | "parent" | "other";
 
 export interface EssayRecord {
   essay_id:               number;

@@ -7,7 +7,3 @@ export interface SubmitFeedbackRequestDto {
   screenshot_url?: string;
   page_or_screen?: string;
 }
-
-export interface DeleteAccountRequestDto {
-  confirmation: string; // Must be 'DELETE'
-}

@@ -4,15 +4,19 @@ import { STUDENT_PROFILES_TABLE } from "../../../db/schema/student-profiles.js";
 import { STUDENT_SAVED_SCHOLARSHIPS_TABLE } from "../../../db/schema/student-saved-scholarships.js";
 import type {
   SavedScholarshipRecord,
+  SavedScholarshipWithDetails,
   ScholarshipListFilters,
   ScholarshipPage,
   ScholarshipRecord,
 } from "./scholarships.types.js";
 
-const STUDENT_SAVED_COLLEGES_TABLE = "student_saved_colleges";
-
 type RawScholarshipRow = Omit<ScholarshipRecord, "is_saved"> & {
   is_saved: boolean | number;
+};
+
+type RawSavedScholarshipRow = RawScholarshipRow & {
+  saved_scholarship_id: number;
+  saved_at: Date;
 };
 
 function mapScholarship(row: RawScholarshipRow): ScholarshipRecord {
@@ -27,6 +31,15 @@ function mapScholarship(row: RawScholarshipRow): ScholarshipRecord {
     application_link: row.application_link,
     scholarship_type: row.scholarship_type,
     is_saved: Boolean(row.is_saved),
+  };
+}
+
+function mapSavedScholarship(row: RawSavedScholarshipRow): SavedScholarshipWithDetails {
+  return {
+    ...mapScholarship(row),
+    saved_scholarship_id: row.saved_scholarship_id,
+    saved_at: row.saved_at,
+    is_saved: true,
   };
 }
 
@@ -83,18 +96,6 @@ export class ScholarshipsRepository {
       where.push("s.college_id = @college_id");
     } else if (filters.general_only) {
       where.push("s.college_id IS NULL");
-    } else {
-      where.push(
-        `(s.college_id IS NULL
-          OR NOT EXISTS (
-            SELECT 1 FROM ${STUDENT_SAVED_COLLEGES_TABLE} sc_any
-             WHERE sc_any.student_id = @student_id
-          )
-          OR EXISTS (
-            SELECT 1 FROM ${STUDENT_SAVED_COLLEGES_TABLE} sc
-             WHERE sc.student_id = @student_id AND sc.college_id = s.college_id
-          ))`,
-      );
     }
     if (filters.graduation_year !== null) {
       listRequest.input("graduation_year", sql.Int, filters.graduation_year);
@@ -187,6 +188,29 @@ export class ScholarshipsRepository {
       );
     const row = result.recordset[0];
     return row ? mapScholarship(row) : null;
+  }
+
+  async listSaved(studentId: number): Promise<SavedScholarshipWithDetails[]> {
+    const pool = await getPool();
+    const result = await pool
+      .request()
+      .input("student_id", sql.Int, studentId)
+      .query<RawSavedScholarshipRow>(
+        `SELECT
+            ss.saved_scholarship_id,
+            ss.saved_at,
+            s.scholarship_id, s.scholarship_name, s.provider, s.college_id,
+            s.eligibility_summary, s.deadline, s.award_amount, s.application_link,
+            s.scholarship_type,
+            1 AS is_saved
+           FROM ${STUDENT_SAVED_SCHOLARSHIPS_TABLE} ss
+           INNER JOIN ${SCHOLARSHIPS_TABLE} s
+             ON s.scholarship_id = ss.scholarship_id
+          WHERE ss.student_id = @student_id
+            AND s.is_active = 1
+          ORDER BY ss.saved_at DESC, ss.saved_scholarship_id DESC;`,
+      );
+    return result.recordset.map(mapSavedScholarship);
   }
 
   async save(studentId: number, scholarshipId: number): Promise<SavedScholarshipRecord> {

@@ -242,9 +242,9 @@ export class ExtracurricularsService {
     studentId: number,
     dto: ExtracurricularReorderDto
   ): Promise<ExtracurricularReorderResponseDto> {
-    const orders: ExtracurricularReorderData[] = dto.activities.map(activity => ({
-      activity_id: parseInt(activity.activity_id),
-      display_order: activity.display_order,
+    const orders: ExtracurricularReorderData[] = dto.order.map((row) => ({
+      activity_id: row.ec_id,
+      display_order: row.display_order,
     }));
 
     // Validate all activities belong to the student

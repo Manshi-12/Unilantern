@@ -84,8 +84,7 @@ export class EssayController {
     try {
       const studentId = res.locals.studentId as number;
       const dto = finalizeSchema.parse(req.body);
-      // confirmation=true is validated by schema; proceed to service
-      void dto;
+      void dto.confirms_best_work;
       const result = await this.essayService.finalizeEssay(studentId);
       sendSuccess(res, result, HttpStatus.OK);
     } catch (err) {

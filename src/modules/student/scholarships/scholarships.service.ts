@@ -4,6 +4,8 @@ import { AuthErrorCode } from "../../../shared/response/error-codes.js";
 import type { ScholarshipsFilterRequestDto, SaveScholarshipRequestDto } from "./dto/request.dto.js";
 import type {
   SaveScholarshipResponseDto,
+  SavedScholarshipListResponseDto,
+  SavedScholarshipPublicResponseDto,
   ScholarshipListResponseDto,
   ScholarshipPublicResponseDto,
   UnsaveScholarshipResponseDto,
@@ -41,6 +43,18 @@ export class ScholarshipsService {
       throw new AuthError(AuthErrorCode.NOT_FOUND, "Scholarship not found or inactive", 404);
     }
     return this.mapScholarship(scholarship);
+  }
+
+  async listSaved(studentId: number): Promise<SavedScholarshipListResponseDto> {
+    const saved = await this.scholarshipsRepo.listSaved(studentId);
+    return {
+      data: saved.map((scholarship): SavedScholarshipPublicResponseDto => ({
+        ...this.mapScholarship(scholarship),
+        saved_scholarship_id: scholarship.saved_scholarship_id,
+        saved_at: scholarship.saved_at.toISOString(),
+      })),
+      total: saved.length,
+    };
   }
 
   async save(studentId: number, dto: SaveScholarshipRequestDto): Promise<SaveScholarshipResponseDto> {

@@ -53,8 +53,8 @@ export interface ExtracurricularUpdateDto {
 }
 
 export interface ExtracurricularReorderDto {
-  activities: Array<{
-    activity_id: string;
+  order: Array<{
+    ec_id: number;
     display_order: number;
   }>;
 }

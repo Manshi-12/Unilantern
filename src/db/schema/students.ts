@@ -95,6 +95,48 @@ BEGIN
 END;
 
 -- ── Deletion lifecycle columns (idempotent migration) ────────────────────────
+IF EXISTS (
+  SELECT 1
+  FROM sys.check_constraints
+  WHERE parent_object_id = OBJECT_ID('dbo.students')
+    AND name = 'chk_students_account_status'
+    AND definition NOT LIKE '%deletion_pending%'
+)
+BEGIN
+  ALTER TABLE dbo.students DROP CONSTRAINT chk_students_account_status;
+END;
+
+-- Ensure account_status is wide enough for 'deletion_pending' (16 chars)
+IF EXISTS (
+  SELECT 1
+  FROM sys.columns
+  WHERE object_id = OBJECT_ID('dbo.students')
+    AND name = 'account_status'
+    AND max_length < 30
+)
+BEGIN
+  ALTER TABLE dbo.students ALTER COLUMN account_status VARCHAR(30) NOT NULL;
+END;
+
+IF NOT EXISTS (
+  SELECT 1
+  FROM sys.check_constraints
+  WHERE parent_object_id = OBJECT_ID('dbo.students')
+    AND name = 'chk_students_account_status'
+)
+BEGIN
+  ALTER TABLE dbo.students
+    ADD CONSTRAINT chk_students_account_status CHECK (
+      account_status IN (
+        'independent',
+        'school_linked',
+        'deletion_pending',
+        'purge_scheduled',
+        'permanently_deleted'
+      )
+    );
+END;
+
 IF COL_LENGTH('dbo.students', 'deletion_requested_at') IS NULL
 BEGIN
   ALTER TABLE dbo.students ADD deletion_requested_at DATETIMEOFFSET NULL;

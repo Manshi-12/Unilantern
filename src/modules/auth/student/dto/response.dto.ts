@@ -14,6 +14,14 @@ export interface StudentAuthResponseDto {
   full_name: string;
 }
 
+export interface StudentRegisterVerifyResponseDto {
+  student_id: string;
+  access_token: string;
+  refresh_token: string;
+  account_status: "independent" | "school_linked" | "deletion_pending" | "purge_scheduled" | "permanently_deleted";
+  consents_recorded: string[];
+}
+
 // ── New APIs (1.1 – 1.8) ──────────────────────────────────────────────────
 
 export interface OtpSentResponseDto {
@@ -26,6 +34,8 @@ export interface OtpVerifyResponseDto {
   verified: true;
   phone_number: string;
   purpose: "signup" | "login";
+  phone_verify_token: string;
+  expires_in_seconds: number;
 }
 
 export interface ValidateInviteResponseDto {

@@ -114,6 +114,7 @@ export class CollegesService {
           state: studentData.state_of_residence,
           readiness_band: studentData.readiness_band,
           intended_major_selectivity: dto.major_selectivity ?? null,
+          in_state_for_application: dto.is_in_state ?? null,
         };
 
         fitClassification = classifyAcademicFit(studentInputs, college);
@@ -152,9 +153,18 @@ export class CollegesService {
       throw new AuthError(AuthErrorCode.NOT_FOUND, "Saved college not found", 404);
     }
 
-    // If major selectivity changed, recompute fit
+    // If major selectivity or in-state flag changed, recompute fit (8-step algorithm)
+    const mergedSelectivity =
+      dto.major_selectivity !== undefined ? dto.major_selectivity : existing.major_selectivity;
+    const mergedInState = dto.is_in_state !== undefined ? dto.is_in_state : existing.is_in_state;
+
     let newFit: FitClassification | null | undefined;
-    if (dto.major_selectivity !== undefined && dto.major_selectivity !== existing.major_selectivity) {
+    const selChanged =
+      dto.major_selectivity !== undefined && dto.major_selectivity !== existing.major_selectivity;
+    const inStateChanged =
+      dto.is_in_state !== undefined && dto.is_in_state !== existing.is_in_state;
+
+    if (selChanged || inStateChanged) {
       try {
         const college = await this.collegesRepo.findById(existing.college_id);
         const studentData = await this.fetchStudentAcademicData(studentId);
@@ -167,7 +177,8 @@ export class CollegesService {
             course_rigor: studentData.course_rigor as StudentFitInputs["course_rigor"],
             state: studentData.state_of_residence,
             readiness_band: studentData.readiness_band,
-            intended_major_selectivity: dto.major_selectivity ?? null,
+            intended_major_selectivity: mergedSelectivity ?? null,
+            in_state_for_application: mergedInState ?? null,
           };
           newFit = classifyAcademicFit(studentInputs, college);
         }
@@ -213,12 +224,24 @@ export class CollegesService {
     return stored.map(this.toCollegeDto);
   }
 
+  // ── Private: validate acceptance rate is within bounds (0.01–100.00 or null) ──
+  private validateAcceptanceRate(rate: number | null): number | null {
+    if (rate === null || rate === undefined) return null;
+    if (rate < 0.01 || rate > 100.00) {
+      console.warn(`[CollegesService] Skipping invalid acceptance_rate: ${rate}`);
+      return null;
+    }
+    return rate;
+  }
+
   // ── Private: upsert a college from external data ────────────────────────────
   private async upsertFromExternal(ext: TransformedCollege): Promise<CollegeRecord> {
+    const validAcceptanceRate = this.validateAcceptanceRate(ext.acceptance_rate);
+
     const existing = await this.collegesRepo.findByName(ext.name);
     if (existing) {
       return this.collegesRepo.updateFromExternal(existing.college_id, {
-        acceptance_rate: ext.acceptance_rate,
+        acceptance_rate: validAcceptanceRate,
         logo_url: ext.logo,
         website_url: ext.website,
         is_test_optional: ext.is_test_optional,
@@ -234,7 +257,7 @@ export class CollegesService {
       city: ext.city,
       state: ext.state,
       website_url: ext.website,
-      acceptance_rate: ext.acceptance_rate,
+      acceptance_rate: validAcceptanceRate,
       is_test_optional: ext.is_test_optional,
       is_public: ext.is_public,
       logo_url: ext.logo,

@@ -37,3 +37,8 @@ export interface SavedScholarshipRecord {
   student_id: number;
   saved_at: Date;
 }
+
+export interface SavedScholarshipWithDetails extends ScholarshipRecord {
+  saved_scholarship_id: number;
+  saved_at: Date;
+}

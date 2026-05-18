@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const scholarshipsListQuerySchema = z.object({
-  type: z.enum(["merit", "need", "athletic", "demographic", "major", "other"]).optional(),
+  type: z.enum(["merit", "need", "athletic", "demographic", "major", "project", "other"]).optional(),
   college_id: z.coerce.number().int().positive().optional(),
   general_only: z
     .enum(["true", "false"])

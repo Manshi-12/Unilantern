@@ -207,7 +207,7 @@ export class EssayService {
 
     const updated = await this.essayRepo.confirmReviewer(studentId, {
       reviewer_type:      dto.reviewer_type,
-      reviewer_confirmed: true,
+      reviewer_confirmed: dto.confirms_feedback_incorporated,
     });
 
     return this.toDto(updated);

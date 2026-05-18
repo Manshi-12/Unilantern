@@ -6,7 +6,8 @@ export interface PushTokenRecord {
   push_token_id: number;
   user_id: number;
   user_role: string;
-  device_token: string;
+  device_id: string | null;
+  push_token: string;
   platform: PushTokenPlatform;
   device_name: string | null;
   is_active: boolean;

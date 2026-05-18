@@ -176,7 +176,7 @@ unilantern-api/
 │   │   │   │   │                        #   { phone, invite_token, full_name, date_of_birth,
 │   │   │   │   │                        #     graduation_year, high_school_name, state_of_residence,
 │   │   │   │   │                        #     confirms_age_13_plus, confirms_parental_permission,
-│   │   │   │   │                        #     college_data_share },
+│   │   │   │   │                        #     college_data_share_consent: boolean },
 │   │   │   │   │                        # LoginRequestDto { phone, otp_code },
 │   │   │   │   │                        # RefreshTokenRequestDto { } (cookie only — empty body)
 │   │   │   │   └── response.dto.ts      # SendOtpResponseDto { expires_in_seconds: number },
@@ -307,8 +307,7 @@ unilantern-api/
 │   │   │   │   │                        #   { total_hours_range: ServiceHoursRangeEnum,
 │   │   │   │   │                        #     action_type: ServiceActionTypeEnum,
 │   │   │   │   │                        #     is_leadership: boolean,
-│   │   │   │   │                        #     duration_months?: number,
-│   │   │   │   │                        #     description?: string }   ← excluded until confirmed
+│   │   │   │   │                        #     duration_months?: number }
 │   │   │   │   └── response.dto.ts      # ServiceEntryResponseDto
 │   │   │   │                            #   { service_id, user_id, total_hours_range,
 │   │   │   │                            #     action_type, is_leadership, duration_months,
@@ -330,7 +329,7 @@ unilantern-api/
 │   │   │   │   │                        #   { target_status: EssayStatusEnum }
 │   │   │   │   │                        # ReviewerConfirmRequestDto
 │   │   │   │   │                        #   { reviewer_type: ReviewerTypeEnum,
-│   │   │   │   │                        #     reviewer_confirmed: true }
+│   │   │   │   │                        #     confirms_feedback_incorporated: boolean }
 │   │   │   │   │                        # FinalizeEssayRequestDto
 │   │   │   │   │                        #   { confirmation: 'This essay reflects my best work at this time.' }
 │   │   │   │   └── response.dto.ts      # EssayPublicResponseDto (student-facing — NO essay_text)
@@ -495,7 +494,7 @@ unilantern-api/
 │   │   │   │   │                        #   { consent_type: ConsentTypeEnum }
 │   │   │   │   │                        #   NOTE: age_13plus cannot be revoked — enforced in service
 │   │   │   │   │                        # UpdateCollegeDataSharingRequestDto
-│   │   │   │   │                        #   { college_data_share: boolean }
+│   │   │   │   │                        #   { enabled: boolean }
 │   │   │   │   └── response.dto.ts      # ConsentRecordResponseDto
 │   │   │   │                            #   { consent_id, consent_type, status,
 │   │   │   │                            #     granted_at, revoked_at?, version }
@@ -536,7 +535,7 @@ unilantern-api/
 │   │   │   ├── dto/
 │   │   │   │   ├── request.dto.ts       # SchoolSearchRequestDto { q: string, limit?: number }
 │   │   │   │   │                        # LinkSchoolRequestDto { school_id: string }
-│   │   │   │   │                        # MergeConfirmRequestDto { account_id: string }
+│   │   │   │   │                        # MergeConfirmRequestDto { confirmed_student_id: number, school_id: number }
 │   │   │   │   └── response.dto.ts      # SchoolSearchResultDto
 │   │   │   │                            #   { school_id, name, state, address, school_type }
 │   │   │   │                            # LinkSchoolResponseDto
@@ -556,7 +555,7 @@ unilantern-api/
 │   │   ├── push-tokens/
 │   │   │   ├── dto/
 │   │   │   │   ├── request.dto.ts       # RegisterPushTokenRequestDto
-│   │   │   │   │                        #   { token: string, platform: PlatformEnum }
+│   │   │   │   │                        #   { push_token: string, platform, device_id, device_name? }
 │   │   │   │   └── response.dto.ts      # PushTokenResponseDto
 │   │   │   │                            #   { registered: boolean, platform: string }
 │   │   │   ├── push-tokens.routes.ts

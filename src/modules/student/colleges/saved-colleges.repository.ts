@@ -202,11 +202,27 @@ export class SavedCollegesRepository {
     }
 
     const result = await req.query<RawSavedRow>(
-      `UPDATE ${STUDENT_SAVED_COLLEGES_TABLE}
-          SET ${setClauses.join(", ")}
-        OUTPUT INSERTED.*
-        WHERE saved_college_id = @saved_college_id
-          AND student_id       = @student_id;`,
+      `DECLARE @output TABLE (
+        saved_college_id INT,
+        student_id INT,
+        college_id INT,
+        status VARCHAR(20),
+        fit_classification VARCHAR(20) NULL,
+        intended_major VARCHAR(250) NULL,
+        major_selectivity VARCHAR(30) NULL,
+        is_in_state BIT NULL,
+        readiness_band_at_save VARCHAR(25) NULL,
+        saved_at DATETIMEOFFSET,
+        updated_at DATETIMEOFFSET
+      );
+
+      UPDATE ${STUDENT_SAVED_COLLEGES_TABLE}
+        SET ${setClauses.join(", ")}, updated_at = SYSDATETIMEOFFSET()
+      OUTPUT INSERTED.* INTO @output
+      WHERE saved_college_id = @saved_college_id
+        AND student_id       = @student_id;
+
+      SELECT * FROM @output;`,
     );
     const row = result.recordset[0];
     if (!row) throw new Error("Update returned no row — saved_college_id or ownership check failed");

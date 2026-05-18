@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { SettingsService } from "./settings.service.js";
-import { submitFeedbackSchema, deleteAccountSchema } from "./settings.schema.js";
+import { submitFeedbackSchema } from "./settings.schema.js";
 
 export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
@@ -29,15 +29,4 @@ export class SettingsController {
     }
   };
 
-  deleteAccount = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const studentId = res.locals.user.student_id;
-      deleteAccountSchema.parse(req.body);
-      
-      const result = await this.settingsService.deleteAccount(studentId);
-      res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  };
 }

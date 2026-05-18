@@ -26,6 +26,8 @@ export interface StudentFitInputs {
   state: string | null;
   readiness_band: string | null;
   intended_major_selectivity: "standard" | "competitive" | "highly_competitive" | null;
+  /** Saved-college flag: true = treat as in-state for Step 6; false = treat as out-of-state; null = use profile state vs college only */
+  in_state_for_application?: boolean | null;
 }
 
 // ── Core FIT_MATRIX: GPA (rows) × Test Score (cols) → Fit ────────────────────
@@ -90,7 +92,7 @@ export function classifyAcademicFit(
   fit = step5_majorSelectivity(fit, student.intended_major_selectivity);
 
   // Step 6: In-state / out-of-state
-  fit = step6_inStateAdjustment(fit, college, student.state);
+  fit = step6_inStateAdjustment(fit, college, student.state, student.in_state_for_application);
 
   // Step 7: Course rigor guardrail
   fit = step7_courseRigorGuardrail(fit, gpaStatus, student.course_rigor);
@@ -189,15 +191,31 @@ function step6_inStateAdjustment(
   fit: FitClassification,
   college: CollegeRecord,
   studentState: string | null,
+  inStateForApplication: boolean | null | undefined,
 ): FitClassification {
-  if (
-    college.is_public &&
-    studentState &&
-    college.state &&
-    studentState.toLowerCase() !== college.state.toLowerCase() &&
-    college.acceptance_rate != null &&
-    college.acceptance_rate < 40
-  ) {
+  let shouldDowngrade: boolean;
+
+  if (inStateForApplication === true) {
+    shouldDowngrade = false;
+  } else if (inStateForApplication === false) {
+    shouldDowngrade = Boolean(
+      college.is_public &&
+        college.state &&
+        college.acceptance_rate != null &&
+        college.acceptance_rate < 40,
+    );
+  } else {
+    shouldDowngrade = Boolean(
+      college.is_public &&
+        studentState &&
+        college.state &&
+        studentState.toLowerCase() !== college.state.toLowerCase() &&
+        college.acceptance_rate != null &&
+        college.acceptance_rate < 40,
+    );
+  }
+
+  if (shouldDowngrade) {
     return downgradeFit(fit);
   }
   return fit;

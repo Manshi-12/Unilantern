@@ -19,8 +19,7 @@ router.use(requireRole("student"));
 router.post("/feedback", auditLogger("submit_feedback"), controller.submitFeedback);
 
 /**
- * @route DELETE /api/v1/students/me/account
+ * Account deletion is handled by account-deletion.routes.ts.
  */
-router.delete("/students/me/account", auditLogger("delete_account"), controller.deleteAccount);
 
 export default router;

@@ -80,7 +80,16 @@ export class AcademicsRepository {
          WHEN NOT MATCHED THEN
            INSERT (student_id, unweighted_gpa, course_rigor, sat_score, act_score)
            VALUES (@student_id, @unweighted_gpa, @course_rigor, @sat_score, @act_score)
-         OUTPUT INSERTED.* INTO @OutputTable;
+         OUTPUT
+           INSERTED.academics_id,
+           INSERTED.student_id,
+           INSERTED.unweighted_gpa,
+           INSERTED.course_rigor,
+           INSERTED.sat_score,
+           INSERTED.act_score,
+           INSERTED.created_at,
+           INSERTED.updated_at
+         INTO @OutputTable;
 
          SELECT * FROM @OutputTable;`,
       );

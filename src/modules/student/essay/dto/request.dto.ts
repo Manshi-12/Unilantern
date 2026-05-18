@@ -11,8 +11,9 @@ export interface AdvanceStatusRequestDto {
 
 export interface ConfirmReviewerRequestDto {
   reviewer_type: ReviewerType;
+  confirms_feedback_incorporated: boolean;
 }
 
 export interface FinalizeRequestDto {
-  confirmation: true;
+  confirms_best_work: boolean;
 }

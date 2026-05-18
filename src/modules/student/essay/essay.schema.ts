@@ -15,12 +15,16 @@ export const advanceStatusSchema = z.object({
   target_status: z.enum(["drafted", "revised", "reviewed"]),
 });
 
+const mustBeTrue = (field: string) =>
+  z.boolean().refine((v) => v === true, { message: `${field} must be true` });
+
 export const confirmReviewerSchema = z.object({
-  reviewer_type: z.enum(["advisor", "peer", "mentor"]),
+  reviewer_type: z.enum(["peer", "teacher", "counselor", "tutor", "parent", "other"]),
+  confirms_feedback_incorporated: mustBeTrue("confirms_feedback_incorporated"),
 });
 
 export const finalizeSchema = z.object({
-  confirmation: z.literal(true, { message: "confirmation must be true" }),
+  confirms_best_work: mustBeTrue("confirms_best_work"),
 });
 
 export type SaveContentSchema    = z.infer<typeof saveContentSchema>;

@@ -20,6 +20,16 @@ export interface ScholarshipListResponseDto {
   total: number;
 }
 
+export interface SavedScholarshipPublicResponseDto extends ScholarshipPublicResponseDto {
+  saved_scholarship_id: number;
+  saved_at: string;
+}
+
+export interface SavedScholarshipListResponseDto {
+  data: SavedScholarshipPublicResponseDto[];
+  total: number;
+}
+
 export interface SaveScholarshipResponseDto {
   saved_scholarship_id: number;
   scholarship_id: number;

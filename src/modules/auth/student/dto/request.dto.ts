@@ -9,7 +9,7 @@ export interface StudentRegisterInitDto {
   confirms_age_13_plus: boolean;
   confirms_parental_permission: boolean;
   invite_token?: string;
-  college_data_share?: boolean;
+  college_data_share_consent?: boolean;
 }
 
 export interface StudentRegisterVerifyDto {
@@ -44,9 +44,8 @@ export interface ValidateInviteTokenDto {
 }
 
 export interface SignupDto {
-  phone_number: string;
-  otp_code: string;
-  email: string;
+  phone_verify_token: string;
+  invite_token?: string;
   full_name: string;
   graduation_year: number;
   date_of_birth: string;
@@ -54,13 +53,11 @@ export interface SignupDto {
   state_of_residence: string;
   confirms_age_13_plus: boolean;
   confirms_parental_permission: boolean;
-  invite_token?: string;
-  college_data_share?: boolean;
+  college_data_share_consent: boolean;
 }
 
 export interface LoginDto {
-  phone_number: string;
-  otp_code: string;
+  phone_verify_token: string;
 }
 
 export interface RefreshTokenDto {
