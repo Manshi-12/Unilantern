@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction, RequestHandler } from "express";
 import { RateLimitError } from "../errors/rate-limit-error.js";
 
-type IdentifierSource = "phone_number" | "ip";
+type IdentifierSource = "phone_number" | "ip" | "user";
 
 export interface RateLimiterOptions {
   identifier?: IdentifierSource;
@@ -75,5 +75,27 @@ function resolveIdentifier(req: Request, source: IdentifierSource): string | nul
     }
     return null;
   }
+  if (source === "user") {
+    const user = (resLocals(req) as { user?: { user_id?: unknown; student_id?: unknown } }).user;
+    if (typeof user?.user_id === "string") return user.user_id;
+    if (typeof user?.student_id === "number") return String(user.student_id);
+
+    const authorization = req.headers.authorization;
+    if (!authorization || !authorization.startsWith("Bearer ")) return null;
+
+    const tokenParts = authorization.slice(7).trim().split(".");
+    if (tokenParts.length < 2) return null;
+
+    try {
+      const payload = JSON.parse(Buffer.from(tokenParts[1], "base64url").toString("utf8")) as { sub?: unknown };
+      return typeof payload.sub === "string" && payload.sub.length > 0 ? payload.sub : null;
+    } catch {
+      return null;
+    }
+  }
   return req.ip ?? req.socket.remoteAddress ?? null;
+}
+
+function resLocals(req: Request): Record<string, unknown> {
+  return (req as Request & { res?: Response }).res?.locals ?? {};
 }

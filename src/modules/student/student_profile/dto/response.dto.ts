@@ -5,12 +5,7 @@ export interface StudentProfileResponseDto {
   graduation_year: number;
   high_school_name: string | null;
   school_id: number | null;
-  account_status:
-    | "independent"
-    | "school_linked"
-    | "deletion_pending"
-    | "purge_scheduled"
-    | "permanently_deleted";
+  account_status: "independent" | "school_linked";
   state: string | null;
   city: string | null;
   is_profile_complete: boolean;

@@ -1,57 +1,33 @@
 import type { NextFunction, Request, Response } from "express";
 import { sendSuccess } from "../../../shared/response/success.js";
 import { HttpStatus } from "../../../shared/response/http-status.js";
-import {
-  initiateDeletionSchema,
-  confirmDeletionSchema,
-  reactivateAccountSchema,
-} from "./account-deletion.schema.js";
+import { AuthError } from "../../../shared/errors/auth-error.js";
+import { AuthErrorCode } from "../../../shared/response/error-codes.js";
+import { deleteAccountSchema } from "./account-deletion.schema.js";
 import type { AccountDeletionService } from "./account-deletion.service.js";
 
 export class AccountDeletionController {
   constructor(private readonly service: AccountDeletionService) {}
 
-  // ── Step 1: DELETE /students/me/account — Initiate deletion ──────────────
-  initiateDeletion = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  deleteAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const dto = initiateDeletionSchema.parse(req.body);
-      const studentId = res.locals.studentId as number;
-      const result = await this.service.initiateDeletion(studentId, dto);
-      sendSuccess(res, result, HttpStatus.OK);
-    } catch (err) {
-      next(err);
-    }
-  };
+      const parsed = deleteAccountSchema.safeParse(req.body);
+      if (!parsed.success) {
+        throw new AuthError(
+          AuthErrorCode.CONFIRMATION_MISMATCH,
+          "Confirmation must be exactly DELETE",
+          400,
+        );
+      }
 
-  // ── Step 2: POST /students/me/account/confirm-deletion ──────────────────
-  confirmDeletion = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const dto = confirmDeletionSchema.parse(req.body);
-      const studentId = res.locals.studentId as number;
-      const result = await this.service.confirmDeletion(studentId, dto);
-      sendSuccess(res, result, HttpStatus.OK);
-    } catch (err) {
-      next(err);
-    }
-  };
+      const user = res.locals.user as { student_id: number };
+      const result = await this.service.deleteAccount(String(user.student_id), parsed.data);
 
-  // ── Step 3: POST /students/me/account/reactivate ────────────────────────
-  reactivateAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const dto = reactivateAccountSchema.parse(req.body);
-      const studentId = res.locals.studentId as number;
-      const result = await this.service.reactivateAccount(studentId, dto);
-      sendSuccess(res, result, HttpStatus.OK);
-    } catch (err) {
-      next(err);
-    }
-  };
+      res.cookie("refresh_token", "", {
+        httpOnly: true,
+        expires: new Date(0),
+      });
 
-  // ── GET /students/me/account/deletion-status ────────────────────────────
-  getDeletionStatus = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const studentId = res.locals.studentId as number;
-      const result = await this.service.getDeletionStatus(studentId);
       sendSuccess(res, result, HttpStatus.OK);
     } catch (err) {
       next(err);

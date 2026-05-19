@@ -17,7 +17,7 @@ type RawStudentRow = {
   student_id: number;
   school_id: number | null;
   role: "student";
-  account_status: "independent" | "school_linked" | "deletion_pending" | "purge_scheduled" | "permanently_deleted";
+  account_status: "independent" | "school_linked";
   is_active: boolean;
   phone_number: string;
   phone_verified: boolean;

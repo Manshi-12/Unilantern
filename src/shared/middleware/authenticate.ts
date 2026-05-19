@@ -15,6 +15,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     // 2. Populate compatibility fields in res.locals
     const user = res.locals.user as AuthUser;
     if (user) {
+      res.locals.userId    = user.user_id;
       res.locals.studentId = user.student_id;
       res.locals.role      = user.role;
       res.locals.schoolId  = user.school_id;

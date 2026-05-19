@@ -8,7 +8,7 @@ export interface StudentAuthResponseDto {
   access_token: string;
   student_id: string;
   role: "student";
-  account_status: "independent" | "school_linked" | "deletion_pending" | "purge_scheduled" | "permanently_deleted";
+  account_status: "independent" | "school_linked";
   school_id: string | null;
   email: string | null;
   full_name: string;
@@ -18,7 +18,7 @@ export interface StudentRegisterVerifyResponseDto {
   student_id: string;
   access_token: string;
   refresh_token: string;
-  account_status: "independent" | "school_linked" | "deletion_pending" | "purge_scheduled" | "permanently_deleted";
+  account_status: "independent" | "school_linked";
   consents_recorded: string[];
 }
 
@@ -61,7 +61,7 @@ export interface MeResponseDto {
   email: string | null;
   phone_masked: string;
   role: "student";
-  account_status: "independent" | "school_linked" | "deletion_pending" | "purge_scheduled" | "permanently_deleted";
+  account_status: "independent" | "school_linked";
   school_id: string | null;
   is_active: boolean;
   phone_verified: boolean;

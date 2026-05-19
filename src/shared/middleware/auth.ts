@@ -3,8 +3,11 @@ import { verifyAccessToken } from "../utils/jwt.js";
 import { AuthError } from "../errors/auth-error.js";
 import { AuthErrorCode } from "../response/error-codes.js";
 import { AuditRepository } from "../repository/audit.repository.js";
+import { sql, getPool } from "../../db/client.js";
+import { STUDENTS_TABLE } from "../../db/schema/students.js";
 
 export interface AuthUser {
+  user_id: string;
   student_id: number;
   role: string;
   school_id: number | null;
@@ -31,8 +34,29 @@ export async function verifyJWT(req: Request, res: Response, next: NextFunction)
       throw new AuthError(AuthErrorCode.TOKEN_INVALID, "Malformed access token", 401);
     }
 
+    const studentId = Number(sub);
+    const pool = await getPool();
+    const result = await pool
+      .request()
+      .input("student_id", sql.Int, studentId)
+      .query<{ student_id: number; is_active: boolean }>(
+        `SELECT TOP 1 student_id, is_active
+           FROM ${STUDENTS_TABLE}
+          WHERE student_id = @student_id;`,
+      );
+
+    const row = result.recordset[0];
+    if (!row || !row.is_active) {
+      throw new AuthError(
+        AuthErrorCode.ACCOUNT_DELETED,
+        "This account has been deleted.",
+        401,
+      );
+    }
+
     res.locals.user = {
-      student_id: Number(sub),
+      user_id: sub,
+      student_id: studentId,
       role,
       school_id,
     };
@@ -85,7 +109,9 @@ export function auditLogger(action: string): RequestHandler {
       actor_role: user.role,
       actor_school_id: user.school_id ?? null,
       action_type: action,
-      target_resource: `${req.method} ${req.path}`,
+      target_resource: action === "account_deletion"
+        ? `user:${user.user_id}`
+        : `${req.method} ${req.path}`,
       ip_address: req.ip,
       user_agent: req.headers["user-agent"],
       metadata: {

@@ -180,6 +180,7 @@ CREATE TABLE students (
     -- ── Onboarding tracking ───────────────────────────────────────────────────
     invite_token_used       VARCHAR(500)        NULL,       -- token string used at sign-up
     last_login_at           DATETIMEOFFSET      NULL,
+    deleted_at              DATETIMEOFFSET      NULL,
 
     -- ── Audit timestamps ──────────────────────────────────────────────────────
     created_at              DATETIMEOFFSET      NOT NULL    DEFAULT SYSDATETIMEOFFSET(),

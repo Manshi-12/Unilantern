@@ -74,6 +74,12 @@ export class StudentService {
 
     const existing = await this.studentRepo.findByPhone(phone);
     if (existing) {
+      if (!existing.is_active) {
+        throw new ConflictError(
+          AuthErrorCode.PHONE_UNAVAILABLE,
+          "Unable to create account with this number.",
+        );
+      }
       throw new ConflictError(
         AuthErrorCode.PHONE_ALREADY_REGISTERED,
         "Phone number is already registered",
@@ -146,6 +152,12 @@ export class StudentService {
 
     const existing = await this.studentRepo.findByPhone(phone);
     if (existing) {
+      if (!existing.is_active) {
+        throw new ConflictError(
+          AuthErrorCode.PHONE_UNAVAILABLE,
+          "Unable to create account with this number.",
+        );
+      }
       throw new ConflictError(AuthErrorCode.PHONE_ALREADY_REGISTERED, "Phone number is already registered");
     }
 
@@ -187,11 +199,12 @@ export class StudentService {
     const phone = normalizePhone(dto.phone_number);
 
     const existing = await this.studentRepo.findByPhone(phone);
-    if (!existing) {
-      throw new AuthError(AuthErrorCode.PHONE_NOT_FOUND, "No account found for this phone number", 404);
-    }
-    if (!existing.is_active) {
-      throw new AuthError(AuthErrorCode.ACCOUNT_INACTIVE, "Account is inactive", 403);
+    if (!existing || !existing.is_active) {
+      throw new AuthError(
+        AuthErrorCode.ACCOUNT_DELETED,
+        "This account has been deleted.",
+        401,
+      );
     }
 
     await this.otpRepo.invalidatePreviousOtps(phone, "login");
@@ -220,7 +233,11 @@ export class StudentService {
       throw new AuthError(AuthErrorCode.PHONE_NOT_FOUND, "No account found for this phone number", 404);
     }
     if (!student.is_active) {
-      throw new AuthError(AuthErrorCode.ACCOUNT_INACTIVE, "Account is inactive", 403);
+      throw new AuthError(
+        AuthErrorCode.ACCOUNT_DELETED,
+        "This account has been deleted.",
+        401,
+      );
     }
 
     await this.consumeOtp(phone, dto.otp_code, "login");
@@ -237,15 +254,22 @@ export class StudentService {
 
     if (dto.purpose === "login") {
       const student = await this.studentRepo.findByPhone(phone);
-      if (!student) {
-        throw new AuthError(AuthErrorCode.PHONE_NOT_FOUND, "No account found for this phone number", 404);
-      }
-      if (!student.is_active) {
-        throw new AuthError(AuthErrorCode.ACCOUNT_INACTIVE, "Account is inactive", 403);
+      if (!student || !student.is_active) {
+        throw new AuthError(
+          AuthErrorCode.ACCOUNT_DELETED,
+          "This account has been deleted.",
+          401,
+        );
       }
     } else {
       const existing = await this.studentRepo.findByPhone(phone);
       if (existing) {
+        if (!existing.is_active) {
+          throw new ConflictError(
+            AuthErrorCode.PHONE_UNAVAILABLE,
+            "Unable to create account with this number.",
+          );
+        }
         throw new ConflictError(AuthErrorCode.PHONE_ALREADY_REGISTERED, "Phone number is already registered");
       }
     }
@@ -312,6 +336,12 @@ export class StudentService {
 
     const existing = await this.studentRepo.findByPhone(phone);
     if (existing) {
+      if (!existing.is_active) {
+        throw new ConflictError(
+          AuthErrorCode.PHONE_UNAVAILABLE,
+          "Unable to create account with this number.",
+        );
+      }
       throw new ConflictError(AuthErrorCode.PHONE_ALREADY_REGISTERED, "Phone number is already registered");
     }
 
@@ -362,7 +392,11 @@ export class StudentService {
       throw new AuthError(AuthErrorCode.PHONE_NOT_FOUND, "No account found for this phone number", 404);
     }
     if (!student.is_active) {
-      throw new AuthError(AuthErrorCode.ACCOUNT_INACTIVE, "Account is inactive", 403);
+      throw new AuthError(
+        AuthErrorCode.ACCOUNT_DELETED,
+        "This account has been deleted.",
+        401,
+      );
     }
 
     await this.studentRepo.updateLastLogin(student.student_id);
@@ -386,7 +420,11 @@ export class StudentService {
     const student = await this.studentRepo.findById(session.student_id);
     if (!student || !student.is_active) {
       await this.sessionRepo.revokeSession(session.session_id);
-      throw new AuthError(AuthErrorCode.ACCOUNT_INACTIVE, "Account is inactive", 403);
+      throw new AuthError(
+        AuthErrorCode.ACCOUNT_DELETED,
+        "This account has been deleted.",
+        401,
+      );
     }
 
     const newRawToken = generateRefreshToken();

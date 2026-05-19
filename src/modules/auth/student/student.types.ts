@@ -2,7 +2,7 @@ export interface StudentRecord {
   student_id: number;
   school_id: number | null;
   role: "student";
-  account_status: "independent" | "school_linked" | "deletion_pending" | "purge_scheduled" | "permanently_deleted";
+  account_status: "independent" | "school_linked";
   is_active: boolean;
   phone_number: string;
   phone_verified: boolean;
@@ -18,7 +18,7 @@ export interface StudentProfileRecord {
   student_id: number;
   school_id: number | null;
   full_name: string;
-  account_status: "independent" | "school_linked" | "deletion_pending" | "purge_scheduled" | "permanently_deleted";
+  account_status: "independent" | "school_linked";
   grade: number | null;
   graduation_year: number;
   high_school_name: string | null;
