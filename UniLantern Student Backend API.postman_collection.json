@@ -1,0 +1,3296 @@
+{
+  "info": {
+    "_postman_id": "c5d67dd7-db44-4e8f-bd06-c21593b5eb52",
+    "name": "UniLantern Student Backend API",
+    "description": "Comprehensive Postman collection covering all 71 requests for the current UniLantern Backend API, updated from the Express routes and Zod schemas in src as of 2026-05-14.\n\nBase URL: {{base_url}} (default: http://localhost:3000)\n\nAuth quick start:\n1. POST /api/v1/auth/student/otp/send with purpose signup or login.\n2. POST /api/v1/auth/student/otp/verify and copy phone_verify_token from the response.\n3. For signup, POST /api/v1/auth/student/signup with phone_verify_token and required profile fields.\n4. For login, POST /api/v1/auth/student/login with phone_verify_token.\n5. Store access_token and refresh_token for authenticated endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "53666632"
+  },
+  "item": [
+    {
+      "name": "⚙️ Setup Verification",
+      "item": [
+        {
+          "name": "GET /health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Health check status', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.response.to.be.json;",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.equal('ok');",
+                  "    pm.expect(jsonData.service).to.equal('unilantern-backend');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Check if the API is up and running"
+          },
+          "response": []
+        },
+        {
+          "name": "GET / (Welcome)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            },
+            "description": "Welcome message from the API"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "OTP Send (For invited student) RL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set('phone_number', pm.request.body.raw ? JSON.parse(pm.request.body.raw).phone_number : '');",
+                  "    pm.test('OTP sent successfully', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "        pm.expect(jsonData.data.otp_sent).to.equal(true);",
+                  "        pm.expect(jsonData.data.expires_in_seconds).to.equal(60);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+12125551232\",\n  \"purpose\": \"signup\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/otp/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "otp",
+                "send"
+              ]
+            },
+            "description": "Send OTP to phone number for signup or login. OTP will be logged to console (6-digit code, 60 second TTL, 5 max attempts).\n\nPurpose: 'signup' or 'login'"
+          },
+          "response": []
+        },
+        {
+          "name": "OTP Verify (For invited student) RL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success) {",
+                  "    pm.test('OTP verified successfully', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "        pm.expect(jsonData.data.verified).to.equal(true);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+12125551232\",\n  \"otp_code\": \"123456\",\n  \"purpose\": \"signup\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/otp/verify",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "otp",
+                "verify"
+              ]
+            },
+            "description": "Verify the OTP code sent to phone number. Required before signup or login."
+          },
+          "response": []
+        },
+        {
+          "name": "Invite Token Validate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invite_token\": \"optional_invite_token_from_school\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/invite/validate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "invite",
+                "validate"
+              ]
+            },
+            "description": "Validate an invite token from a school. Optional for signup."
+          },
+          "response": []
+        },
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_verify_token\": \"{{phone_verify_token}}\",\n  \"full_name\": \"Carlos Sainz\",\n  \"graduation_year\": 2026,\n  \"date_of_birth\": \"2007-03-20\",\n  \"high_school_name\": \"Lincoln High School\",\n  \"state_of_residence\": \"California\",\n  \"confirms_age_13_plus\": true,\n  \"confirms_parental_permission\": true,\n  \"invite_token\": \"optional_invite_token_from_school\",\n  \"college_data_share_consent\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/signup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+12125551236\",\n  \"email\": \"lewis.hamilton@example.com\",\n  \"full_name\": \"Lewis Hamilton\",\n  \"graduation_year\": 2027,\n  \"date_of_birth\": \"2007-09-12\",\n  \"high_school_name\": \"Lincoln High School\",\n  \"state_of_residence\": \"California\",\n  \"confirms_age_13_plus\": true,\n  \"confirms_parental_permission\": true,\n  \"college_data_share_consent\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "register"
+              ]
+            },
+            "description": "Complete signup with verified phone number. Returns access_token and refresh_token.\n\nRequired fields:\n- phone_number (E.164 format)\n- otp_code (from OTP verify)\n- email\n- full_name\n- graduation_year (integer)\n- date_of_birth (YYYY-MM-DD)\n- high_school_name\n- state_of_residence\n- confirms_age_13_plus (boolean, must be true)\n- confirms_parental_permission (boolean, must be true)"
+          },
+          "response": []
+        },
+        {
+          "name": "Register Verify (Legacy)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+12125551236\",\n  \"otp_code\": \"136568\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/register/verify",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "register",
+                "verify"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Send OTP (Legacy)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+12125551236\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/login-legacy",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "login-legacy"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Verify OTP (Legacy)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phone_number\": \"+12125551236\",\n    \"otp_code\": \"089484\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/login/verify-legacy",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "login",
+                "verify-legacy"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+                  "    pm.collectionVariables.set('refresh_token', jsonData.data.refresh_token);",
+                  "    pm.collectionVariables.set('student_id', jsonData.data.student_id);",
+                  "    pm.test('Login successful', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "        pm.expect(jsonData.data.access_token).to.be.a('string');",
+                  "        pm.expect(jsonData.data.refresh_token).to.be.a('string');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_verify_token\": \"{{phone_verify_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "login"
+              ]
+            },
+            "description": "Login with phone number and verified OTP code. Returns access_token and refresh_token."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+                  "    pm.collectionVariables.set('refresh_token', jsonData.data.refresh_token);",
+                  "    pm.test('Token refreshed successfully', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "        pm.expect(jsonData.data.access_token).to.be.a('string');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/token/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "token",
+                "refresh"
+              ]
+            },
+            "description": "Refresh the access token using refresh token. Call when access_token is about to expire."
+          },
+          "response": [
+            {
+              "name": "Refresh Token",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refresh_token\": \"9cd2cd4166ea9de69f0bf5d698df38112a74767ac945e8cb9b3b51fe6070bfc8\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/student/token/refresh",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "student",
+                    "token",
+                    "refresh"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "X-Powered-By",
+                  "value": "Express"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "97e49b38-3340-493b-829b-0ced7e6b14e8"
+                },
+                {
+                  "key": "X-RateLimit-Limit",
+                  "value": "20"
+                },
+                {
+                  "key": "X-RateLimit-Remaining",
+                  "value": "18"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "407"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"197-Fc0Bc45n9CiT4ixOOhnp3Z3ivMM\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 13 May 2026 10:26:39 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"request_id\": \"97e49b38-3340-493b-829b-0ced7e6b14e8\",\n    \"data\": {\n        \"access_token\": \"eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic3R1ZGVudCIsInNjaG9vbF9pZCI6bnVsbCwic3ViIjoiMTAwMyIsImlhdCI6MTc3ODY2Nzk5OSwiZXhwIjoxNzc4NjY4ODk5fQ.uE0N-eI-LM3Od16D9_o61NjmuS_F447tb8WMFp_xLYg\",\n        \"refresh_token\": \"e94110cd77f0e888fb10d301d479b8c108b7e0afefa487a006a3011f1301f79b\",\n        \"refresh_token_expires_at\": \"2026-06-12T10:26:39.863Z\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Current User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Get user info successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.student_id).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "me"
+              ]
+            },
+            "description": "Get currently authenticated user information (student_id, full_name, email, phone, role, school_id, etc.)\n\nRequires: Authorization: Bearer {access_token}"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Logout successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "logout"
+              ]
+            },
+            "description": "Logout and invalidate current session. Optionally provide refresh_token to revoke specific session."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👤 Student Profile",
+      "item": [
+        {
+          "name": "2.1 GET Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Get profile successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.student_id).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "profile"
+              ]
+            },
+            "description": "Get student's profile information (name, grade, graduation year, school, state, profile completion %)"
+          },
+          "response": []
+        },
+        {
+          "name": "2.2 PUT Update Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Profile update successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"graduation_year\": 2026\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "profile"
+              ]
+            },
+            "description": "Update student profile. All fields optional. Returns updated_fields array and triggers score recalculation."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📚 Academics",
+      "item": [
+        {
+          "name": "3.1 GET Academics",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/academics",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "academics"
+              ]
+            },
+            "description": "Get student's academic records (GPA, test scores, course rigor)"
+          },
+          "response": []
+        },
+        {
+          "name": "3.2 PUT Update Academics",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unweighted_gpa\": 3.95,\n  \"course_rigor\": \"heavy_advanced\",\n  \"sat_score\": 1520\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/academics",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "academics"
+              ]
+            },
+            "description": "Update academic records. Validation: GPA 0.0-4.0, SAT 400-1600, ACT 1-36. Cannot use both SAT and ACT."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🎯 Extracurriculars",
+      "item": [
+        {
+          "name": "4.1 GET List Extracurriculars",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/extracurriculars?limit=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "extracurriculars"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "List all extracurricular activities for student (cursor-based pagination). Rate limit: 120/min"
+          },
+          "response": []
+        },
+        {
+          "name": "4.2 POST Create Extracurricular",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activity_name\": \"Robotics Club\",\n  \"activity_type\": \"club\",\n  \"years_involved\": \"2\",\n  \"involvement_level\": \"leader_founder\",\n  \"activity_description\": \"Founded and led the school robotics competition team.\",\n  \"impact_text\": \"Led a 12-member team to qualify for the state championship.\",\n  \"impact_level\": \"measurable\",\n  \"hours_per_week\": \"6_to_10\",\n  \"experience_duration_weeks\": 36,\n  \"selective_acceptance_toggle\": false,\n  \"external_org_toggle\": true,\n  \"travel_or_residency_toggle\": false,\n  \"people_impacted\": 120,\n  \"funds_raised\": 1500,\n  \"users_acquired\": 0,\n  \"hours_delivered\": 220,\n  \"competition_top_10_pct_toggle\": true,\n  \"finalist_or_winner_toggle\": false,\n  \"publication_or_presented_toggle\": false,\n  \"policy_or_partnership_toggle\": false,\n  \"structured_deliverable_toggle\": true,\n  \"language_or_skill_cert_toggle\": false,\n  \"formal_selection_toggle\": false,\n  \"documented_real_world_output_toggle\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/extracurriculars",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "extracurriculars"
+              ]
+            },
+            "description": "Create new extracurricular activity. Rate limit: 30/min\n\nTypes: club, sport, job, family, project, research, other\nInvolvement: explored, consistent, key_contributor, leader_founder\nImpact: participation_only, contributed, measurable, created_scaled"
+          },
+          "response": []
+        },
+        {
+          "name": "4.3 GET Single Extracurricular",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/extracurriculars/3005",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "extracurriculars",
+                "3005"
+              ]
+            },
+            "description": "Get details of a specific extracurricular activity"
+          },
+          "response": []
+        },
+        {
+          "name": "4.4 PUT Update Extracurricular",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activity_name\": \"Advanced Robotics Club\",\n  \"involvement_level\": \"key_contributor\",\n  \"impact_text\": \"Built and documented reusable robot control modules.\",\n  \"impact_level\": \"created_scaled\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/extracurriculars/3005",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "extracurriculars",
+                "3005"
+              ]
+            },
+            "description": "Update extracurricular activity details. All fields optional. Rate limit: 30/min"
+          },
+          "response": []
+        },
+        {
+          "name": "4.5 DELETE Extracurricular",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/extracurriculars/activity_id_here",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "extracurriculars",
+                "activity_id_here"
+              ]
+            },
+            "description": "Delete an extracurricular activity"
+          },
+          "response": []
+        },
+        {
+          "name": "4.6 POST Reorder Extracurriculars",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order\": [\n    {\n      \"ec_id\": 3003,\n      \"display_order\": 1\n    },\n    {\n      \"ec_id\": 3004,\n      \"display_order\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/extracurriculars/reorder",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "extracurriculars",
+                "reorder"
+              ]
+            },
+            "description": "Reorder extracurricular activities by setting display_order"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🏆 Awards & Honors",
+      "item": [
+        {
+          "name": "5.1 GET Awards List",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/awards",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "awards"
+              ]
+            },
+            "description": "List all awards and honors"
+          },
+          "response": []
+        },
+        {
+          "name": "5.2 POST Create Award",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"award_name\": \"National Merit Scholar\",\n  \"award_level\": \"national\",\n  \"frequency\": \"one_time\",\n  \"annual_since_grade\": null,\n  \"display_order\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/awards",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "awards"
+              ]
+            },
+            "description": "Create new award/honor. Levels: school, district, state, national. Frequency: one_time, multiple_years, annual_since"
+          },
+          "response": []
+        },
+        {
+          "name": "5.3 PUT Update Award",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"award_name\": \"National Merit Scholar Finalist\",\n  \"award_level\": \"national\",\n  \"frequency\": \"multiple_years\",\n  \"display_order\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/awards/award_id_here",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "awards",
+                "award_id_here"
+              ]
+            },
+            "description": "Update award details"
+          },
+          "response": []
+        },
+        {
+          "name": "5.4 DELETE Award",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/awards/award_id_here",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "awards",
+                "award_id_here"
+              ]
+            },
+            "description": "Delete an award/honor"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "✍️ Essays",
+      "item": [
+        {
+          "name": "6.1 GET Essay Status",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/essay",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "essay"
+              ]
+            },
+            "description": "Get essay status (NOT essay_text content). Shows status, word_count, locks, and finalization info."
+          },
+          "response": []
+        },
+        {
+          "name": "6.2 PUT Update Essay Content",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"essay_text\": \"One of the biggest challenges I ever faced happened during my second year of engineering college. I was selected to lead a group project for a technical competition, and at first I felt confident and excited. However, managing a team turned out to be much harder than I expected. Different members had different ideas, some people missed deadlines, and communication slowly became weaker. At the same time, I was also preparing for exams, which made the pressure even greater. Our first presentation went badly, and the judges pointed out several mistakes in our planning and teamwork.\\n\\nAfter that failure, I realized I had two choices: either give up or improve myself. I decided to work harder and become more organized. I created proper schedules, divided tasks clearly, and encouraged open communication among the team members. I also learned how to listen carefully to other opinions instead of trying to control everything alone. Slowly, our teamwork improved, and everyone became more motivated.\\n\\nBy the final round, we presented our project with confidence and received positive feedback from the judges. This challenge taught me that leadership is not about perfection but about patience, teamwork, and learning from mistakes. Most importantly, I learned that difficult situations often help people discover strengths they never knew they had before.\\n\\nBefore this experience, I avoided responsibilities because I feared criticism and failure. After overcoming this challenge, I became more confident while speaking in front of others and participating in new activities. The lessons I learned continue to guide me in academics, teamwork, and growth every day.\",\n  \"essay_prompt\": \"Describe a challenge you overcame and what you learned.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/essay/content",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "essay",
+                "content"
+              ]
+            },
+            "description": "Update essay text. Returns word_count and repetition_detected status."
+          },
+          "response": []
+        },
+        {
+          "name": "6.3 POST Advance Essay Status",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_status\": \"reviewed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/essay/status/advance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "essay",
+                "status",
+                "advance"
+              ]
+            },
+            "description": "Progress essay to next status (draft -> in_progress -> submitted -> finalized)"
+          },
+          "response": []
+        },
+        {
+          "name": "6.4 POST Confirm Reviewer",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewer_type\": \"teacher\",\n  \"confirms_feedback_incorporated\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/essay/reviewer-confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "essay",
+                "reviewer-confirm"
+              ]
+            },
+            "description": "Confirm reviewer email for essay feedback"
+          },
+          "response": []
+        },
+        {
+          "name": "6.5 POST Finalize Essay",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirms_best_work\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/essay/finalize",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "essay",
+                "finalize"
+              ]
+            },
+            "description": "Finalize essay (locks for further editing)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🎓 Colleges",
+      "item": [
+        {
+          "name": "7.1 GET Search Colleges",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/colleges/search",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "colleges",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "sp",
+                  "disabled": true
+                },
+                {
+                  "key": "state",
+                  "value": "CA",
+                  "disabled": true
+                },
+                {
+                  "key": "min_acceptance_rate",
+                  "value": "0",
+                  "disabled": true
+                },
+                {
+                  "key": "max_acceptance_rate",
+                  "value": "20",
+                  "disabled": true
+                },
+                {
+                  "key": "is_test_optional",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "disabled": true
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Search colleges by name, state, major. Supports pagination. Rate limit: 60/min"
+          },
+          "response": []
+        },
+        {
+          "name": "7.2 GET College Details",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/colleges/1007",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "colleges",
+                "1007"
+              ]
+            },
+            "description": "Get detailed information about a specific college"
+          },
+          "response": []
+        },
+        {
+          "name": "7.3 GET Saved Colleges",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/colleges/saved",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "colleges",
+                "saved"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "interested",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get student's saved colleges. Optional status filter (interested, shortlist, application, accepted, rejected)"
+          },
+          "response": []
+        },
+        {
+          "name": "7.4 POST Save College",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"college_id\": 1007,\n  \"intended_major\": \"Computer Science\",\n  \"major_selectivity\": \"competitive\",\n  \"is_in_state\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/colleges/saved",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "colleges",
+                "saved"
+              ]
+            },
+            "description": "Save a college to student's list"
+          },
+          "response": []
+        },
+        {
+          "name": "7.5 PATCH Update Saved College",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"applied\",\n  \"intended_major\": \"Electrical Engineering\",\n  \"major_selectivity\": \"highly_competitive\",\n  \"is_in_state\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/colleges/saved/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "colleges",
+                "saved",
+                "1"
+              ]
+            },
+            "description": "Update saved college status or major"
+          },
+          "response": []
+        },
+        {
+          "name": "7.6 DELETE Unsave College",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/colleges/saved/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "colleges",
+                "saved",
+                "1"
+              ]
+            },
+            "description": "Remove college from saved list"
+          },
+          "response": []
+        },
+        {
+          "name": "7.7 GET Fetch External Colleges",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/colleges/external/fetch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "colleges",
+                "external",
+                "fetch"
+              ]
+            },
+            "description": "Fetch colleges from external data source. Rate limit: 10/min"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "💰 Scholarships",
+      "item": [
+        {
+          "name": "8.1 GET Scholarships List",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/scholarships",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "scholarships"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "merit",
+                  "disabled": true
+                },
+                {
+                  "key": "general_only",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "sort",
+                  "value": "deadline_asc",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "30",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all available scholarships. Supports pagination. Rate limit: 60/min"
+          },
+          "response": []
+        },
+        {
+          "name": "8.2 GET Scholarship Details",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/scholarships/4",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "scholarships",
+                "4"
+              ]
+            },
+            "description": "Get detailed information about a specific scholarship"
+          },
+          "response": []
+        },
+        {
+          "name": "8.3 POST Save Scholarship",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scholarship_id\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/scholarships/saved",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "scholarships",
+                "saved"
+              ]
+            },
+            "description": "Save a scholarship to student's list"
+          },
+          "response": []
+        },
+        {
+          "name": "8.4 DELETE Unsave Scholarship",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/scholarships/saved/saved_scholarship_id_here",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "scholarships",
+                "saved",
+                "saved_scholarship_id_here"
+              ]
+            },
+            "description": "Remove scholarship from saved list"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Saved Scholarships",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/scholarships/saved",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "scholarships",
+                "saved"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🤝 Community Service",
+      "item": [
+        {
+          "name": "9.1 GET Service Entries",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/service",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "service"
+              ]
+            },
+            "description": "List all community service entries"
+          },
+          "response": []
+        },
+        {
+          "name": "9.2 POST Create Service Entry",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"total_hours_range\": \"100_200\",\n  \"action_type\": \"organizing\",\n  \"is_leadership\": true,\n  \"duration_months\": 8\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/service",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "service"
+              ]
+            },
+            "description": "Create new community service entry"
+          },
+          "response": []
+        },
+        {
+          "name": "9.3 PUT Update Service Entry",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"total_hours_range\": \"200_plus\",\n  \"action_type\": \"teaching\",\n  \"is_leadership\": true,\n  \"duration_months\": 12\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/service/2002",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "service",
+                "2002"
+              ]
+            },
+            "description": "Update community service entry"
+          },
+          "response": []
+        },
+        {
+          "name": "9.4 DELETE Service Entry",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/service/2002",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "service",
+                "2002"
+              ]
+            },
+            "description": "Delete community service entry"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔒 Consents & Privacy",
+      "item": [
+        {
+          "name": "10.1 GET Consents",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/consents",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "consents"
+              ]
+            },
+            "description": "List all student consents and their status (age gate, privacy, data sharing)"
+          },
+          "response": []
+        },
+        {
+          "name": "10.2 POST Grant Consent",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/consents/advisor_essay/grant",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "consents",
+                "advisor_essay",
+                "grant"
+              ]
+            },
+            "description": "Grant consent for a specific type (age_gate, privacy_policy, college_data_share)"
+          },
+          "response": []
+        },
+        {
+          "name": "10.3 POST Revoke Consent",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/consents/advisor_essay/revoke",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "consents",
+                "advisor_essay",
+                "revoke"
+              ]
+            },
+            "description": "Revoke consent for a specific type (if revocable)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🧩 College Data Sharing",
+      "item": [
+        {
+          "name": "11.0 GET Data Sharing Preference",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/college-data-sharing",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "college-data-sharing"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11.1 PUT Data Sharing Preference",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/college-data-sharing",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "college-data-sharing"
+              ]
+            },
+            "description": "Update college data sharing preference (opt-in or opt-out)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔔 Notifications",
+      "item": [
+        {
+          "name": "15.1 GET Notifications List",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/notifications?is_read=false&type=college_update&limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "is_read",
+                  "value": "false"
+                },
+                {
+                  "key": "type",
+                  "value": "college_update"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "List notifications with optional filters (is_read, type). Cursor-based pagination. Rate limit: 60/min"
+          },
+          "response": []
+        },
+        {
+          "name": "15.2 GET Unread Count",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/notifications/unread-count",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "notifications",
+                "unread-count"
+              ]
+            },
+            "description": "Get count of unread notifications"
+          },
+          "response": []
+        },
+        {
+          "name": "15.3 GET Notification Preferences",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/notifications/preferences",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "notifications",
+                "preferences"
+              ]
+            },
+            "description": "Get notification preferences for each type (email_enabled, push_enabled)"
+          },
+          "response": []
+        },
+        {
+          "name": "15.4 PUT Update Preferences",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preferences\": [\n    {\n      \"notification_type\": \"college_update\",\n      \"delivery_channel\": \"email\",\n      \"enabled\": true\n    },\n    {\n      \"notification_type\": \"scholarship\",\n      \"delivery_channel\": \"push\",\n      \"enabled\": true\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/notifications/preferences",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "notifications",
+                "preferences"
+              ]
+            },
+            "description": "Update notification preferences"
+          },
+          "response": []
+        },
+        {
+          "name": "15.5 POST Mark All Read",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/notifications/mark-all-read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "notifications",
+                "mark-all-read"
+              ]
+            },
+            "description": "Mark all notifications as read"
+          },
+          "response": []
+        },
+        {
+          "name": "15.6 PATCH Mark Single Read",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/notifications/notification_id_here/read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "notifications",
+                "notification_id_here",
+                "read"
+              ]
+            },
+            "description": "Mark a specific notification as read"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📱 Push Tokens",
+      "item": [
+        {
+          "name": "16.1 POST Register Device Token",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"push_token\": \"firebase_push_token_minimum_10_chars\",\n  \"platform\": \"ios\",\n  \"device_id\": \"ios-device-001\",\n  \"device_name\": \"Carlos iPhone\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/push-token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "push-token"
+              ]
+            },
+            "description": "Register a device token for push notifications. device_type: 'ios' or 'android'"
+          },
+          "response": []
+        },
+        {
+          "name": "16.2 DELETE Deregister Token",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device_id\": \"ios-device-001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/push-token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "push-token"
+              ]
+            },
+            "description": "Deregister a device token (remove push notifications)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🏫 Schools",
+      "item": [
+        {
+          "name": "14.1 GET Search Schools",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/schools/search?q=Lincoln&state=California&limit=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "schools",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "Lincoln"
+                },
+                {
+                  "key": "state",
+                  "value": "California"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Search for schools by name and state"
+          },
+          "response": []
+        },
+        {
+          "name": "14.2 POST Link School",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"school_id\": 3,\n  \"school_email\": \"lewis.hamilton@westvalleyacademy.org\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/school/link",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "school",
+                "link"
+              ]
+            },
+            "description": "Link student account to a school. May require merge if account already exists."
+          },
+          "response": []
+        },
+        {
+          "name": "14.3 POST Confirm School Merge",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirmed_student_id\": 3,\n  \"school_id\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/school/merge-confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "school",
+                "merge-confirm"
+              ]
+            },
+            "description": "Confirm account merge when linking school with existing account"
+          },
+          "response": []
+        },
+        {
+          "name": "14.4 GET Linked School",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/school",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "school"
+              ]
+            },
+            "description": "Get currently linked school information"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🗑️ Account Deletion",
+      "item": [
+        {
+          "name": "13.1 Account Deletion",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirmation\": \"DELETE\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/account",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "account"
+              ]
+            },
+            "description": "Initiates the newer OTP-based account deletion flow. Requires confirm_deletion=true; optional reason may be included."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Analytics & Feedback",
+      "item": [
+        {
+          "name": "17.1 POST Track Event",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"events\": [\n    {\n      \"event_name\": \"screen_view\",\n      \"platform\": \"web\",\n      \"timestamp\": \"2026-05-14T10:30:00+05:30\",\n      \"tab_name\": \"Saved\",\n      \"session_id\": \"session_abc123\",\n      \"properties\": {\n        \"source\": \"postman\"\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/analytics/events",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "analytics",
+                "events"
+              ]
+            },
+            "description": "Track user analytics event"
+          },
+          "response": []
+        },
+        {
+          "name": "12.1 POST Submit Feedback",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"feedback_type\": \"feature_request\",\n  \"message\": \"Great app! Would love a feature to compare multiple colleges.\",\n  \"contact_consent\": true,\n  \"page_or_screen\": \"Saved Colleges\",\n  \"screenshot_url\": \"https://example.com/screenshot.png\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/feedback",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "feedback"
+              ]
+            },
+            "description": "Submit feedback about the application. Rating 1-5, optional category"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "⛳ Readiness Engine",
+      "item": [
+        {
+          "name": "8.1 GET Current Readiness Output",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/readiness",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "readiness"
+              ]
+            },
+            "description": "Returns the Lantern Readiness Index: overall band, category bands, on-track overlay, primary limiter, trend, and improvement guidance."
+          },
+          "response": []
+        },
+        {
+          "name": "8.2 GET Readiness Band History",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/readiness/history?limit=8",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "readiness",
+                "history"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "8",
+                  "description": "Max snapshots to return. Default 8, max 20."
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": "Pagination cursor",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Returns historical readiness snapshots taken at term boundaries. Powers the trend indicator and trajectory visualization."
+          },
+          "response": []
+        },
+        {
+          "name": "8.3 GET Improvement Recommendations",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/readiness/improvement",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "readiness",
+                "improvement"
+              ]
+            },
+            "description": "Returns actionable improvement guidance based on current category bands and primary limiter. All recommendations are pre-written rule-based text."
+          },
+          "response": []
+        },
+        {
+          "name": "8.4 POST Trigger Readiness Recalculation",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/readiness/recalculate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "readiness",
+                "recalculate"
+              ]
+            },
+            "description": "Manually triggers a readiness score recalculation. Returns acknowledgement immediately; calculation runs asynchronously."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "student_id",
+      "value": ""
+    },
+    {
+      "key": "phone_number",
+      "value": ""
+    },
+    {
+      "key": "phone_verify_token",
+      "value": ""
+    },
+    {
+      "key": "activity_id",
+      "value": "3002"
+    },
+    {
+      "key": "award_id",
+      "value": "1"
+    },
+    {
+      "key": "service_id",
+      "value": "2002"
+    },
+    {
+      "key": "saved_college_id",
+      "value": "1"
+    },
+    {
+      "key": "notification_id",
+      "value": "1"
+    },
+    {
+      "key": "device_id",
+      "value": "ios-device-001"
+    }
+  ]
+}

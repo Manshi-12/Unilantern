@@ -35,6 +35,7 @@ import collegeDataSharingRouter from "./modules/student/college-data-sharing/col
 import notificationsRouter from "./modules/student/notifications/notifications.routes.js";
 import pushTokensRouter from "./modules/student/push-tokens/push-tokens.routes.js";
 import essayRouter from "./modules/student/essay/essay.routes.js";
+import readinessRouter from "./modules/student/readiness/readiness.routes.js";
 
 const app = express();
 
@@ -68,6 +69,7 @@ app.use("/api/v1/students/me/account", accountDeletionRouter);
 app.use("/api/v1/students/me/college-data-sharing", collegeDataSharingRouter);
 app.use("/api/v1/students/me/notifications", notificationsRouter);
 app.use("/api/v1/students/me/push-token", pushTokensRouter);
+app.use("/api/v1/students/me/readiness", readinessRouter);
 
 app.get("/", (_req: Request, res: Response) => {
   res.status(200).json({
