@@ -14,8 +14,12 @@ const controller = new CollegeDataSharingController(
 router.use(authenticate);
 router.use(requireStudentRole);
 
-// ── PUT /students/me/college-data-sharing — Update opt-out preference ───────
-// Rate limit: 10 per user per day
+router.get(
+  "/",
+  rateLimiter("college_data_sharing_get", 60, 3600, { identifier: "ip" }),
+  controller.getPreference,
+);
+
 router.put(
   "/",
   rateLimiter("college_data_sharing_update", 10, 86400, { identifier: "ip" }),

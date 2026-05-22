@@ -29,6 +29,7 @@ export const extracurricularActivitiesColumns = {
   funds_raised: "funds_raised",
   users_acquired: "users_acquired",
   hours_delivered: "hours_delivered",
+  company_or_institution_count: "company_or_institution_count",
   competition_top_10_pct_toggle: "competition_top_10_pct_toggle",
   finalist_or_winner_toggle: "finalist_or_winner_toggle",
   publication_or_presented_toggle: "publication_or_presented_toggle",
@@ -49,15 +50,15 @@ BEGIN
     activity_id                      INT IDENTITY(1,1) PRIMARY KEY,
     student_id                       INT NOT NULL,
     activity_name                    VARCHAR(250) NOT NULL,
-    activity_type                    VARCHAR(10) NOT NULL
-                                      CHECK (activity_type IN ('club','sport','work','volunteer','other')),
+    activity_type                    VARCHAR(30) NOT NULL
+                                      CHECK (activity_type IN ('club','sport','job','family_responsibility','project','research','other')),
     years_involved                   VARCHAR(15) NOT NULL,
     involvement_level                VARCHAR(20) NOT NULL
-                                      CHECK (involvement_level IN ('leadership','active','participant')),
-    activity_description             VARCHAR(400) NOT NULL,
-    impact_text                      VARCHAR(300) NOT NULL,
-    impact_level                     VARCHAR(20) NOT NULL
-                                      CHECK (impact_level IN ('high','medium','low')),
+                                      CHECK (involvement_level IN ('explored','consistent','key_contributor','leader_founder')),
+    activity_description             VARCHAR(300) NOT NULL,
+    impact_text                      VARCHAR(200) NOT NULL,
+    impact_level                     VARCHAR(30) NOT NULL
+                                      CHECK (impact_level IN ('participation_only','contributed','measurable','created_scaled')),
     hours_per_week                   VARCHAR(10) NOT NULL,
     experience_duration_weeks        SMALLINT NULL,
     selective_acceptance_toggle      BIT NOT NULL DEFAULT 0,
@@ -67,6 +68,7 @@ BEGIN
     funds_raised                     INT NOT NULL DEFAULT 0,
     users_acquired                   INT NOT NULL DEFAULT 0,
     hours_delivered                  INT NOT NULL DEFAULT 0,
+    company_or_institution_count     SMALLINT NOT NULL DEFAULT 0,
     competition_top_10_pct_toggle    BIT NOT NULL DEFAULT 0,
     finalist_or_winner_toggle        BIT NOT NULL DEFAULT 0,
     publication_or_presented_toggle  BIT NOT NULL DEFAULT 0,

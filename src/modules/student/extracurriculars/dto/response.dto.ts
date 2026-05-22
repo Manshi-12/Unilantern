@@ -7,7 +7,7 @@ export interface ExtracurricularListResponseDto {
 export interface ExtracurricularResponseDto {
   activity_id: string;
   activity_name: string;
-  activity_type: 'club' | 'sport' | 'job' | 'family' | 'project' | 'research' | 'other';
+  activity_type: 'club' | 'sport' | 'job' | 'family_responsibility' | 'project' | 'research' | 'other';
   years_involved: 'less_than_1' | '1' | '2' | '3' | '4_plus';
   involvement_level: 'explored' | 'consistent' | 'key_contributor' | 'leader_founder';
   activity_description: string;

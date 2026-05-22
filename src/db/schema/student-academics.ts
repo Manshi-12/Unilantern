@@ -10,6 +10,7 @@ export const studentAcademicsColumns = {
   student_id:      "student_id",
   unweighted_gpa:  "unweighted_gpa",
   course_rigor:    "course_rigor",
+  test_status:     "test_status",
   sat_score:       "sat_score",
   act_score:       "act_score",
   created_at:      "created_at",
@@ -28,6 +29,9 @@ BEGIN
     course_rigor    VARCHAR(20)        NULL
                        CONSTRAINT chk_sa_course_rigor
                        CHECK (course_rigor IN ('standard','some_advanced','heavy_advanced','most_rigorous')),
+    test_status     VARCHAR(10)        NOT NULL DEFAULT 'no_test'
+                       CONSTRAINT chk_sa_test_status
+                       CHECK (test_status IN ('no_test','sat','act')),
     sat_score       SMALLINT           NULL,
     act_score       SMALLINT           NULL,
 

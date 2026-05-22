@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "c5d67dd7-db44-4e8f-bd06-c21593b5eb52",
     "name": "UniLantern Student Backend API",
-    "description": "Comprehensive Postman collection covering all 71 requests for the current UniLantern Backend API, updated from the Express routes and Zod schemas in src as of 2026-05-14.\n\nBase URL: {{base_url}} (default: http://localhost:3000)\n\nAuth quick start:\n1. POST /api/v1/auth/student/otp/send with purpose signup or login.\n2. POST /api/v1/auth/student/otp/verify and copy phone_verify_token from the response.\n3. For signup, POST /api/v1/auth/student/signup with phone_verify_token and required profile fields.\n4. For login, POST /api/v1/auth/student/login with phone_verify_token.\n5. Store access_token and refresh_token for authenticated endpoints.",
+    "description": "Comprehensive Postman collection covering all 71 requests for the current UniLantern Backend API, updated from the Express routes and Zod schemas in src as of 2026-05-22.\n\nBase URL: {{base_url}} (default: http://localhost:3000)\n\nAuth quick start:\n1. POST /api/v1/auth/student/otp/send with purpose signup or login.\n2. POST /api/v1/auth/student/otp/verify and copy phone_verify_token from the response.\n3. For signup, POST /api/v1/auth/student/signup with phone_verify_token and required profile fields. Signup creates the student profile row immediately.\n4. For login, POST /api/v1/auth/student/login with phone_verify_token.\n5. Store access_token and refresh_token for authenticated endpoints.\n\nReadiness scoring is queued asynchronously after profile, academics, extracurricular, essay, awards, and service writes.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "53666632"
   },
@@ -231,7 +231,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone_verify_token\": \"{{phone_verify_token}}\",\n  \"full_name\": \"Carlos Sainz\",\n  \"graduation_year\": 2026,\n  \"date_of_birth\": \"2007-03-20\",\n  \"high_school_name\": \"Lincoln High School\",\n  \"state_of_residence\": \"California\",\n  \"confirms_age_13_plus\": true,\n  \"confirms_parental_permission\": true,\n  \"invite_token\": \"optional_invite_token_from_school\",\n  \"college_data_share_consent\": true\n}",
+              "raw": "{\n  \"phone_verify_token\": \"{{phone_verify_token}}\",\n  \"full_name\": \"Carlos Sainz\",\n  \"grade\": 12,\n  \"graduation_year\": 2026,\n  \"date_of_birth\": \"2007-03-20\",\n  \"high_school_name\": \"Lincoln High School\",\n  \"state_of_residence\": \"California\",\n  \"confirms_age_13_plus\": true,\n  \"confirms_parental_permission\": true,\n  \"invite_token\": \"optional_invite_token_from_school\",\n  \"college_data_share_consent\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -250,7 +250,8 @@
                 "student",
                 "signup"
               ]
-            }
+            },
+            "description": "Complete signup with a verified phone token. Creates both students and student_profiles in one transaction, records signup consents in student_consents, and returns access_token plus refresh_token."
           },
           "response": []
         },
@@ -290,7 +291,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone_number\": \"+12125551237\",\n  \"email\": \"alex.albon@westvalleyacademy.org\",\n  \"full_name\": \"Alex Albon\",\n  \"graduation_year\": 2027,\n  \"date_of_birth\": \"2009-09-12\",\n  \"high_school_name\": \"West Valley Academy\",\n  \"state_of_residence\": \"California\",\n  \"confirms_age_13_plus\": true,\n  \"confirms_parental_permission\": true,\n  \"college_data_share_consent\": true\n}",
+              "raw": "{\n  \"phone_number\": \"+12125551237\",\n  \"email\": \"alex.albon@westvalleyacademy.org\",\n  \"full_name\": \"Alex Albon\",\n  \"grade\": 11,\n  \"graduation_year\": 2027,\n  \"date_of_birth\": \"2009-09-12\",\n  \"high_school_name\": \"West Valley Academy\",\n  \"state_of_residence\": \"California\",\n  \"confirms_age_13_plus\": true,\n  \"confirms_parental_permission\": true,\n  \"college_data_share_consent\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -310,7 +311,7 @@
                 "register"
               ]
             },
-            "description": "Complete signup with verified phone number. Returns access_token and refresh_token.\n\nRequired fields:\n\n- phone_number (E.164 format)\n    \n- otp_code (from OTP verify)\n    \n- email\n    \n- full_name\n    \n- graduation_year (integer)\n    \n- date_of_birth (YYYY-MM-DD)\n    \n- high_school_name\n    \n- state_of_residence\n    \n- confirms_age_13_plus (boolean, must be true)\n    \n- confirms_parental_permission (boolean, must be true)"
+            "description": "Complete legacy signup with verified phone number. Returns access_token and refresh_token and creates the student_profiles row immediately.\n\nRequired fields:\n\n- phone_number (E.164 format)\n    \n- otp_code (from OTP verify)\n    \n- email\n    \n- full_name\n    \n- graduation_year (integer)\n    \n- date_of_birth (YYYY-MM-DD)\n    \n- high_school_name\n    \n- state_of_residence\n    \n- confirms_age_13_plus (boolean, must be true)\n    \n- confirms_parental_permission (boolean, must be true)\n\nOptional:\n\n- grade (9-12)"
           },
           "response": []
         },
@@ -3212,7 +3213,7 @@
                 "recalculate"
               ]
             },
-            "description": "Manually triggers a readiness score recalculation. Returns acknowledgement immediately; calculation runs asynchronously."
+            "description": "Manually triggers the central readiness scoring orchestrator. It reads academics, extracurriculars, essay, awards, service, and profile data, updates student_scores, and writes a student_score_history snapshot asynchronously."
           },
           "response": []
         }

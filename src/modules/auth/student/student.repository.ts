@@ -92,74 +92,80 @@ export class StudentRepository {
 
   async createStudent(data: CreateStudentData): Promise<StudentRecord> {
     const pool = await getPool();
+    const transaction = new sql.Transaction(pool);
 
-    // 1. Insert into students table
-    const result = await pool
-      .request()
-      .input("phone_number", sql.VarChar(25), data.phone_number)
-      .input("email", sql.VarChar(320), data.email)
-      .input("full_name", sql.VarChar(200), data.full_name)
-      .input("is_active", sql.Bit, data.is_active)
-      .input("phone_verified", sql.Bit, data.phone_verified)
-      .input("account_status", sql.VarChar(15), data.account_status)
-      .input("school_id", sql.Int, data.school_id)
-      .input("invite_token_used", sql.VarChar(500), data.invite_token_used)
-      .query<RawStudentRow>(
-        `INSERT INTO ${STUDENTS_TABLE}
-          (phone_number, email, full_name, is_active, phone_verified, account_status, school_id, invite_token_used)
-         OUTPUT INSERTED.*
-         VALUES
-          (@phone_number, @email, @full_name, @is_active, @phone_verified, @account_status, @school_id, @invite_token_used);`,
-      );
-    
-    const row = result.recordset[0];
-    if (!row) throw new Error("Failed to insert student row");
-    const student = mapStudent(row);
+    await transaction.begin();
 
-    // 2. Insert into student_profiles table if profile data is provided
-    if (data.graduation_year !== undefined) {
-      await pool
-        .request()
+    try {
+      const result = await new sql.Request(transaction)
+        .input("phone_number", sql.VarChar(25), data.phone_number)
+        .input("email", sql.VarChar(320), data.email)
+        .input("full_name", sql.VarChar(200), data.full_name)
+        .input("is_active", sql.Bit, data.is_active)
+        .input("phone_verified", sql.Bit, data.phone_verified)
+        .input("account_status", sql.VarChar(15), data.account_status)
+        .input("school_id", sql.Int, data.school_id)
+        .input("invite_token_used", sql.VarChar(500), data.invite_token_used)
+        .query<RawStudentRow>(
+          `INSERT INTO ${STUDENTS_TABLE}
+            (phone_number, email, full_name, is_active, phone_verified, account_status, school_id, invite_token_used)
+           OUTPUT INSERTED.*
+           VALUES
+            (@phone_number, @email, @full_name, @is_active, @phone_verified, @account_status, @school_id, @invite_token_used);`,
+        );
+
+      const row = result.recordset[0];
+      if (!row) throw new Error("Failed to insert student row");
+      const student = mapStudent(row);
+
+      if (data.graduation_year === undefined) {
+        throw new Error("graduation_year is required to create student profile");
+      }
+
+      await new sql.Request(transaction)
         .input("student_id", sql.Int, student.student_id)
+        .input("grade", sql.TinyInt, data.grade ?? null)
         .input("graduation_year", sql.SmallInt, data.graduation_year)
         .input("date_of_birth", sql.Date, data.date_of_birth)
         .input("high_school_name", sql.VarChar(300), data.high_school_name)
         .input("state_of_residence", sql.VarChar(100), data.state_of_residence)
         .query(
           `INSERT INTO ${STUDENT_PROFILES_TABLE}
-            (student_id, graduation_year, date_of_birth, high_school_name, state_of_residence)
+            (student_id, grade, graduation_year, date_of_birth, high_school_name, state_of_residence)
            VALUES
-            (@student_id, @graduation_year, @date_of_birth, @high_school_name, @state_of_residence);`,
+            (@student_id, @grade, @graduation_year, @date_of_birth, @high_school_name, @state_of_residence);`,
         );
-    }
 
-    // 3. Insert consent rows derived from registration flags
-    const consents: { type: string; status: string }[] = [];
-    if (data.confirms_age_13_plus !== undefined) {
-      consents.push({ type: "age_13plus", status: data.confirms_age_13_plus ? "granted" : "revoked" });
-    }
-    if (data.confirms_parental_permission !== undefined) {
-      consents.push({ type: "parental_13_17", status: data.confirms_parental_permission ? "granted" : "revoked" });
-    }
-    if (data.college_data_share_consent !== undefined) {
-      consents.push({ type: "college", status: data.college_data_share_consent ? "granted" : "revoked" });
-    }
+      const consents: { type: string; status: string }[] = [];
+      if (data.confirms_age_13_plus !== undefined) {
+        consents.push({ type: "age_13plus", status: data.confirms_age_13_plus ? "granted" : "revoked" });
+      }
+      if (data.confirms_parental_permission !== undefined) {
+        consents.push({ type: "parental_13_17", status: data.confirms_parental_permission ? "granted" : "revoked" });
+      }
+      if (data.college_data_share_consent !== undefined) {
+        consents.push({ type: "college", status: data.college_data_share_consent ? "granted" : "revoked" });
+      }
 
-    for (const c of consents) {
-      await pool
-        .request()
-        .input("student_id", sql.Int, student.student_id)
-        .input("consent_type", sql.VarChar(60), c.type)
-        .input("status", sql.VarChar(20), c.status)
-        .query(
-          `INSERT INTO ${STUDENT_CONSENTS_TABLE}
-            (student_id, consent_type, status, source)
-           VALUES
-            (@student_id, @consent_type, @status, 'signup');`,
-        );
-    }
+      for (const c of consents) {
+        await new sql.Request(transaction)
+          .input("student_id", sql.Int, student.student_id)
+          .input("consent_type", sql.VarChar(60), c.type)
+          .input("status", sql.VarChar(20), c.status)
+          .query(
+            `INSERT INTO ${STUDENT_CONSENTS_TABLE}
+              (student_id, consent_type, status, source)
+             VALUES
+              (@student_id, @consent_type, @status, 'signup');`,
+          );
+      }
 
-    return student;
+      await transaction.commit();
+      return student;
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
   }
 
   async findValidInviteToken(

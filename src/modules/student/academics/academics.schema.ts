@@ -7,6 +7,8 @@ const courseRigorEnum = z.enum([
   "most_rigorous",
 ]);
 
+const testStatusEnum = z.enum(["no_test", "sat", "act"]);
+
 export const updateAcademicsSchema = z
   .object({
     unweighted_gpa: z
@@ -17,6 +19,8 @@ export const updateAcademicsSchema = z
       .optional(),
 
     course_rigor: courseRigorEnum.nullable().optional(),
+
+    test_status: testStatusEnum.optional(),
 
     sat_score: z
       .number()
@@ -53,6 +57,22 @@ export const updateAcademicsSchema = z
         code: z.ZodIssueCode.custom,
         path: ["act_score"],
         message: "Only one test score allowed: provide either sat_score or act_score, not both",
+      });
+    }
+
+    if (data.test_status === "sat" && data.act_score != null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["act_score"],
+        message: "ACT score cannot be provided when test_status is sat",
+      });
+    }
+
+    if (data.test_status === "act" && data.sat_score != null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["sat_score"],
+        message: "SAT score cannot be provided when test_status is act",
       });
     }
   });

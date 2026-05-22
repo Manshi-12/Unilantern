@@ -2,11 +2,11 @@ import { z } from "zod";
 
 export const extracurricularCreateSchema = z.object({
   activity_name: z.string().trim().min(1).max(250),
-  activity_type: z.enum(['club', 'sport', 'job', 'family', 'project', 'research', 'other']),
+  activity_type: z.enum(['club', 'sport', 'job', 'family_responsibility', 'project', 'research', 'other']),
   years_involved: z.enum(['less_than_1', '1', '2', '3', '4_plus']),
   involvement_level: z.enum(['explored', 'consistent', 'key_contributor', 'leader_founder']),
-  activity_description: z.string().trim().min(1).max(400),
-  impact_text: z.string().trim().min(1).max(300),
+  activity_description: z.string().trim().min(1).max(300),
+  impact_text: z.string().trim().min(1).max(200),
   impact_level: z.enum(['participation_only', 'contributed', 'measurable', 'created_scaled']),
   hours_per_week: z.enum(['under_2', '2_to_5', '6_to_10', '11_to_20', '20_plus']),
   experience_duration_weeks: z.number().int().min(1).max(52).optional(),

@@ -36,14 +36,14 @@ router.post(
 // Step 1: Submit phone → OTP sent
 router.post(
   "/login-legacy",
-  rateLimiter("login_otp_send", RATE_LIMITS.OTP_SEND.limit, RATE_LIMITS.OTP_SEND.window),
+  rateLimiter("login_otp_send", RATE_LIMITS.OTP_SEND.limit, RATE_LIMITS.OTP_SEND.window, { identifier: "phone_number" }),
   controller.loginSendOtp,
 );
 
 // Step 2: Verify OTP → JWT returned
 router.post(
   "/login/verify-legacy",
-  rateLimiter("login_verify", RATE_LIMITS.LOGIN.limit, RATE_LIMITS.LOGIN.window),
+  rateLimiter("login_verify", RATE_LIMITS.LOGIN.limit, RATE_LIMITS.LOGIN.window, { identifier: "phone_number" }),
   controller.loginVerify,
 );
 
@@ -80,7 +80,7 @@ router.post(
 // 1.5 POST /login (Complete login in one call)
 router.post(
   "/login",
-  rateLimiter("login", RATE_LIMITS.LOGIN.limit, RATE_LIMITS.LOGIN.window),
+  rateLimiter("login", RATE_LIMITS.LOGIN.limit, RATE_LIMITS.LOGIN.window, { identifier: "phone_number" }),
   controller.login,
 );
 

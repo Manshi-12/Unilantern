@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { verifyJWT, requireRole, type AuthUser } from "./auth.js";
+import { verifyJWT, requireRole } from "./auth.js";
 
 /**
  * authenticate.ts
@@ -8,18 +8,8 @@ import { verifyJWT, requireRole, type AuthUser } from "./auth.js";
  */
 
 export async function authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
-  // 1. Call the canonical verifyJWT middleware
   await verifyJWT(req, res, (err) => {
     if (err) return next(err);
-
-    // 2. Populate compatibility fields in res.locals
-    const user = res.locals.user as AuthUser;
-    if (user) {
-      res.locals.userId    = user.user_id;
-      res.locals.studentId = user.student_id;
-      res.locals.role      = user.role;
-      res.locals.schoolId  = user.school_id;
-    }
     next();
   });
 }

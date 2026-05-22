@@ -46,6 +46,7 @@ import type { OtpRecord, StudentRecord } from "./student.types.js";
 interface PendingRegistration {
   email: string;
   full_name: string;
+  grade?: number;
   graduation_year: number;
   date_of_birth: string;
   high_school_name: string;
@@ -109,6 +110,7 @@ export class StudentService {
     pendingRegistrations.set(phone, {
       email,
       full_name: dto.full_name.trim(),
+      grade: dto.grade,
       graduation_year: dto.graduation_year,
       date_of_birth: dto.date_of_birth,
       high_school_name: dto.high_school_name,
@@ -177,6 +179,7 @@ export class StudentService {
       account_status: inviteResolution.school_id !== null ? "school_linked" : "independent",
       school_id: inviteResolution.school_id,
       invite_token_used: inviteResolution.token_used,
+      grade: pending.grade,
       graduation_year: pending.graduation_year,
       date_of_birth: pending.date_of_birth,
       high_school_name: pending.high_school_name,
@@ -367,6 +370,7 @@ export class StudentService {
       account_status: inviteResolution.school_id !== null ? "school_linked" : "independent",
       school_id: inviteResolution.school_id,
       invite_token_used: inviteResolution.token_used,
+      grade: dto.grade,
       graduation_year: dto.graduation_year,
       date_of_birth: dto.date_of_birth,
       high_school_name: dto.high_school_name,

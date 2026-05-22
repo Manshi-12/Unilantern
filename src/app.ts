@@ -8,11 +8,13 @@ import { ZodError } from "zod";
 
 // Middlewares
 import { requestId } from "./shared/middleware/request-id.js";
+import { requestLogger } from "./shared/middleware/logger.js";
 import { AppError } from "./shared/errors/app-error.js";
 import { AuthError } from "./shared/errors/auth-error.js";
 import { ConflictError } from "./shared/errors/conflict-error.js";
 import { RateLimitError } from "./shared/errors/rate-limit-error.js";
 import { sendError } from "./shared/response/error.js";
+import { logger } from "./shared/utils/logger.js";
 
 // Routers
 import studentAuthRouter from "./modules/auth/student/student.routes.js";
@@ -41,10 +43,9 @@ const app = express();
 
 app.use(cors());
 app.use(requestId);
+app.use(requestLogger);
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
-
-// Request logging
 
 // ── Auth Routes ──────────────────────────────────────────────────────────────
 app.use("/api/v1/auth/student", studentAuthRouter);
@@ -93,6 +94,7 @@ app.use((_req: Request, res: Response) => {
 // Global Error Handler
 app.use((error: Error, req: Request, res: Response, _next: NextFunction) => {
   const ts = new Date().toISOString();
+  const requestId = (req as any).id || "unknown";
 
   if (error instanceof ZodError) {
     const fields = error.issues.reduce<Record<string, string[]>>((acc, e) => {
@@ -100,31 +102,61 @@ app.use((error: Error, req: Request, res: Response, _next: NextFunction) => {
       acc[field] = [...(acc[field] ?? []), e.message];
       return acc;
     }, {});
-    console.error(`[${ts}] VALIDATION_ERROR ${req.method} ${req.path}`, fields);
+    logger.error("VALIDATION_ERROR", error, {
+      requestId,
+      method: req.method,
+      path: req.path,
+      statusCode: 422,
+    });
     return sendError(res, "VALIDATION_ERROR", "Invalid input", 422, fields);
   }
 
   if (error instanceof AuthError) {
-    console.error(`[${ts}] ${error.code} (${error.statusCode}) ${req.method} ${req.path} — ${error.message}`);
+    logger.error(`${error.code}`, error, {
+      requestId,
+      method: req.method,
+      path: req.path,
+      statusCode: error.statusCode,
+    });
     return sendError(res, error.code, error.message, error.statusCode);
   }
 
   if (error instanceof ConflictError) {
-    console.error(`[${ts}] ${error.code} (409) ${req.method} ${req.path} — ${error.message}`);
+    logger.error(`${error.code}`, error, {
+      requestId,
+      method: req.method,
+      path: req.path,
+      statusCode: 409,
+    });
     return sendError(res, error.code, error.message, 409, error.details);
   }
 
   if (error instanceof RateLimitError) {
-    console.error(`[${ts}] RATE_LIMIT_EXCEEDED (429) ${req.method} ${req.path} — ${error.message}`);
+    logger.warning(`RATE_LIMIT_EXCEEDED`, {
+      requestId,
+      method: req.method,
+      path: req.path,
+      statusCode: 429,
+    });
     return sendError(res, "RATE_LIMIT_EXCEEDED", error.message, 429);
   }
 
   if (error instanceof AppError) {
-    console.error(`[${ts}] ${error.code} (${error.statusCode}) ${req.method} ${req.path} - ${error.message}`);
+    logger.error(`${error.code}`, error, {
+      requestId,
+      method: req.method,
+      path: req.path,
+      statusCode: error.statusCode,
+    });
     return sendError(res, error.code, error.message, error.statusCode, error.details);
   }
 
-  console.error(`[${ts}] INTERNAL_SERVER_ERROR ${req.method} ${req.path}`, error);
+  logger.error("INTERNAL_SERVER_ERROR", error, {
+    requestId,
+    method: req.method,
+    path: req.path,
+    statusCode: 500,
+  });
   sendError(res, "INTERNAL_SERVER_ERROR", "Something went wrong", 500);
 });
 

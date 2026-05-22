@@ -38,6 +38,10 @@ export interface SaveContentData {
   draft_saved_at:         Date | null;
   essay_status:           EssayStatus;
   not_started_reason:     NotStartedReason | null;
+  reviewer_type?:          ReviewerType | null;
+  reviewer_confirmed?:     boolean;
+  finalization_confirmed?: boolean;
+  finalized_at?:           Date | null;
 }
 
 export interface AdvanceStatusData {

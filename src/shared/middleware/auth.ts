@@ -60,6 +60,10 @@ export async function verifyJWT(req: Request, res: Response, next: NextFunction)
       role,
       school_id,
     };
+    res.locals.userId = sub;
+    res.locals.studentId = studentId;
+    res.locals.role = role;
+    res.locals.schoolId = school_id;
 
     next();
   } catch (error) {

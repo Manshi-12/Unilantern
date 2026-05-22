@@ -2,10 +2,25 @@ import { AuthError } from "../../../shared/errors/auth-error.js";
 import { AuthErrorCode } from "../../../shared/response/error-codes.js";
 import type { CollegeDataSharingRepository } from "./college-data-sharing.repository.js";
 import type { UpdateCollegeDataSharingDto } from "./dto/request.dto.js";
-import type { UpdateCollegeDataSharingResponseDto } from "./dto/response.dto.js";
+import type {
+  GetCollegeDataSharingResponseDto,
+  UpdateCollegeDataSharingResponseDto,
+} from "./dto/response.dto.js";
 
 export class CollegeDataSharingService {
   constructor(private readonly repo: CollegeDataSharingRepository) {}
+
+  async getCollegeDataSharing(studentId: number): Promise<GetCollegeDataSharingResponseDto> {
+    const row = await this.repo.getPreference(studentId);
+    if (!row) {
+      throw new AuthError(AuthErrorCode.NOT_FOUND, "Student not found", 404);
+    }
+
+    return {
+      college_data_sharing_enabled: row.college_data_sharing_enabled,
+      updated_at: row.updated_at.toISOString(),
+    };
+  }
 
   async updatePreference(
     studentId: number,

@@ -34,11 +34,13 @@ const inviteToken = z
   .transform((v) => v ?? undefined);
 
 const currentYear = new Date().getUTCFullYear();
+const signupGrade = z.number().int().min(9).max(12).optional();
 
 export const registerInitSchema = z.object({
   phone_number: phoneNumber,
   email: emailAddress,
   full_name: fullName,
+  grade: signupGrade,
   graduation_year: z
     .number()
     .int()
@@ -92,6 +94,7 @@ export const signupSchema = z
   .object({
     phone_verify_token: z.string().trim().min(1, "phone_verify_token is required"),
     full_name: fullName,
+    grade: signupGrade,
     graduation_year: z
       .number()
       .int()

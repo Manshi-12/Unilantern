@@ -10,6 +10,7 @@ import type {
   StudentProfileRecord,
   UpdateStudentProfileData,
 } from "./students.types.js";
+import { queueScoreRecalculation } from "../scoring/scoring.orchestrator.js";
 
 export class StudentsService {
   constructor(private readonly studentsRepo: StudentsRepository) {}
@@ -134,6 +135,6 @@ export class StudentsService {
     console.log(
       `[student-profile] queued readiness recalculation for student_id=${studentId} grade_changed=${gradeChanged}`,
     );
-    return true;
+    return queueScoreRecalculation(studentId, "student-profile");
   }
 }

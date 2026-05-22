@@ -2,6 +2,7 @@ export interface StudentRegisterInitDto {
   phone_number: string;
   email: string;
   full_name: string;
+  grade?: number;
   graduation_year: number;
   date_of_birth: string;
   high_school_name: string;
@@ -47,6 +48,7 @@ export interface SignupDto {
   phone_verify_token: string;
   invite_token?: string;
   full_name: string;
+  grade?: number;
   graduation_year: number;
   date_of_birth: string;
   high_school_name: string;

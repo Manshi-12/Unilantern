@@ -10,7 +10,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 chars"),
   JWT_ACCESS_TTL: z.string().default("15m"),
 
-  OTP_TTL_SECONDS: z.coerce.number().default(600),
+  OTP_TTL_SECONDS: z.coerce.number().default(300),
   REDIS_URL: z.string().optional().default(""),
   DOB_ENCRYPTION_KEY: z.string().optional().default(""),
 });

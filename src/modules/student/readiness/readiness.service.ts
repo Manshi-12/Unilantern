@@ -1,6 +1,7 @@
 import { AuthError } from "../../../shared/errors/auth-error.js";
 import { AuthErrorCode } from "../../../shared/response/error-codes.js";
 import type { ReadinessRepository } from "./readiness.repository.js";
+import { queueScoreRecalculation } from "../scoring/scoring.orchestrator.js";
 import type {
   ReadinessPublicResponseDto,
   ReadinessHistoryResponseDto,
@@ -172,6 +173,7 @@ export class ReadinessService {
   // ── 8.4: Trigger Readiness Recalculation ───────────────────────────────────
   async recalculateReadiness(studentId: number): Promise<RecalculateResponseDto> {
     console.log(`[readiness] manual readiness recalculation queued for student_id=${studentId}`);
+    queueScoreRecalculation(studentId, "readiness-manual");
     return {
       recalculation_queued: true,
       queued_at: new Date().toISOString(),

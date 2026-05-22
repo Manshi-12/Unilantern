@@ -5,11 +5,12 @@ import { verifyJWT, requireRole, auditLogger, scoreRecalc } from "../../../share
 import { ExtracurricularsRepository } from "./extracurriculars.repository.js";
 import { ExtracurricularsService } from "./extracurriculars.service.js";
 import { ExtracurricularsController } from "./extracurriculars.controller.js";
+import { ScoresRepository } from "../academics/scores.repository.js";
 
 const router = Router();
 
 const controller = new ExtracurricularsController(
-  new ExtracurricularsService(new ExtracurricularsRepository()),
+  new ExtracurricularsService(new ExtracurricularsRepository(), new ScoresRepository()),
 );
 
 // List extracurricular activities

@@ -3,6 +3,7 @@ import { AuthErrorCode } from "../../../shared/response/error-codes.js";
 import type { EssayRepository } from "./essay.repository.js";
 import type { AcademicsRepository } from "../academics/academics.repository.js";
 import type { ScoresRepository } from "../academics/scores.repository.js";
+import { queueScoreRecalculation } from "../scoring/scoring.orchestrator.js";
 import type {
   SaveContentRequestDto,
   AdvanceStatusRequestDto,
@@ -17,7 +18,6 @@ import {
   isMajorEdit,
   calcReflectionLockUntil,
   isReflectionLockSatisfied,
-  calcEssayScores,
 } from "./essay.scorer.js";
 
 // Grades 9–10: essay module not available for input, but scored with neutral default
@@ -66,15 +66,6 @@ export class EssayService {
     const existing = await this.essayRepo.findWithContentByStudentId(studentId);
     if (!existing) throw new Error("Essay row missing after ensureExists");
 
-    // Reject content saves for finalized essays
-    if (existing.essay_status === "finalized") {
-      throw new AuthError(
-        AuthErrorCode.ESSAY_ALREADY_FINALIZED,
-        "Cannot edit a finalized essay",
-        422,
-      );
-    }
-
     const newWordCount  = countWords(dto.essay_text);
     const prevWordCount = existing.word_count;
     const isFirstSave   = existing.draft_saved_at === null;
@@ -110,6 +101,11 @@ export class EssayService {
     if (!qualified && statusIndex(existing.essay_status) < statusIndex("drafted")) {
       newStatus = "not_started";
     }
+    if (existing.essay_status === "finalized" && majorEdit) {
+      newStatus = "revised";
+    }
+
+    const shouldRevertFinalizedEssay = existing.essay_status === "finalized" && majorEdit;
 
     const record = await this.essayRepo.saveContent(studentId, {
       essay_text:            dto.essay_text,
@@ -123,13 +119,13 @@ export class EssayService {
       draft_saved_at:        draftSavedAt,
       essay_status:          newStatus,
       not_started_reason:    qualified ? null : not_started_reason,
+      reviewer_type:         shouldRevertFinalizedEssay ? null : undefined,
+      reviewer_confirmed:    shouldRevertFinalizedEssay ? false : undefined,
+      finalization_confirmed: shouldRevertFinalizedEssay ? false : undefined,
+      finalized_at:          shouldRevertFinalizedEssay ? null : undefined,
     });
 
-    setImmediate(() => {
-      this.runAsyncScoring(studentId, record.essay_status).catch((err) => {
-        console.error(`[EssayService] async scoring failed for student ${studentId}:`, err);
-      });
-    });
+    queueScoreRecalculation(studentId, "essay");
 
     return { ...this.toDto(record), score_recalc_queued: true };
   }
@@ -173,11 +169,7 @@ export class EssayService {
       reviewed_at:        target === "reviewed" ? now : undefined,
     });
 
-    setImmediate(() => {
-      this.runAsyncScoring(studentId, updated.essay_status).catch((err) => {
-        console.error(`[EssayService] async scoring failed for student ${studentId}:`, err);
-      });
-    });
+    queueScoreRecalculation(studentId, "essay");
 
     return { ...this.toDto(updated), score_recalc_queued: true };
   }
@@ -240,11 +232,7 @@ export class EssayService {
       not_started_reason:     null,
     });
 
-    setImmediate(() => {
-      this.runAsyncScoring(studentId, "finalized").catch((err) => {
-        console.error(`[EssayService] async scoring failed for student ${studentId}:`, err);
-      });
-    });
+    queueScoreRecalculation(studentId, "essay");
 
     return { ...this.toDto(updated), score_recalc_queued: true };
   }
@@ -321,13 +309,6 @@ export class EssayService {
         }
         break;
     }
-  }
-
-  private async runAsyncScoring(studentId: number, status: EssayStatus): Promise<void> {
-    const grade = await this.academicsRepo.findStudentGrade(studentId);
-    const effectiveGrade = grade ?? 11;
-    const scores = calcEssayScores(status, effectiveGrade);
-    await this.scoresRepo.upsertEssayScores(studentId, scores);
   }
 
   private emptyState(): EssayStateResponseDto {

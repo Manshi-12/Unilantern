@@ -611,7 +611,7 @@ CREATE TABLE student_academics (
 
     -- ── Standardised tests ────────────────────────────────────────────────────
     -- test_status: no_test | sat | act
-    test_status             VARCHAR(10)         NULL
+    test_status             VARCHAR(10)         NOT NULL    DEFAULT 'no_test'
                                                 CONSTRAINT chk_sa_test_status
                                                 CHECK (test_status IN ('no_test', 'sat', 'act')),
     sat_score               SMALLINT            NULL,       -- 400–1600; NULL if not sat
@@ -673,10 +673,10 @@ CREATE TABLE extracurricular_activities (
 
     -- ── Student-visible: core ─────────────────────────────────────────────────
     activity_name                       VARCHAR(250)        NOT NULL,
-    -- activity_type: club | sport | job | family | project | research | other
-    activity_type                       VARCHAR(10)         NOT NULL    DEFAULT 'other'
+    -- activity_type: club | sport | job | family_responsibility | project | research | other
+    activity_type                       VARCHAR(30)         NOT NULL    DEFAULT 'other'
                                                                 CONSTRAINT chk_ec_activity_type
-                                                                CHECK (activity_type IN ('club', 'sport', 'job', 'family', 'project', 'research', 'other')),
+                                                                CHECK (activity_type IN ('club', 'sport', 'job', 'family_responsibility', 'project', 'research', 'other')),
     -- years_involved: less_than_1 | 1 | 2 | 3 | 4_plus
     years_involved                      VARCHAR(15)         NULL
                                                                 CONSTRAINT chk_ec_years_involved
@@ -685,10 +685,10 @@ CREATE TABLE extracurricular_activities (
     involvement_level                   VARCHAR(20)         NULL
                                                                 CONSTRAINT chk_ec_involvement_level
                                                                 CHECK (involvement_level IN ('explored', 'consistent', 'key_contributor', 'leader_founder')),
-    activity_description                VARCHAR(400)        NOT NULL,   -- 300-char UI limit + buffer
-    impact_text                         VARCHAR(300)        NOT NULL,   -- 200-char UI limit + buffer
+    activity_description                VARCHAR(300)        NOT NULL,
+    impact_text                         VARCHAR(200)        NOT NULL,
     -- impact_level: participation_only | contributed | measurable | created_scaled
-    impact_level                        VARCHAR(20)         NULL
+    impact_level                        VARCHAR(30)         NULL
                                                                 CONSTRAINT chk_ec_impact_level
                                                                 CHECK (impact_level IN ('participation_only', 'contributed', 'measurable', 'created_scaled')),
     display_order                       SMALLINT            NOT NULL    DEFAULT 0,

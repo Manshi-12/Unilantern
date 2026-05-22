@@ -5,7 +5,7 @@ import type { ScoresRepository } from "../academics/scores.repository.js";
 import type { CreateAwardRequestDto, UpdateAwardRequestDto } from "./dto/request.dto.js";
 import type { AwardResponseDto, AwardsListResponseDto } from "./dto/response.dto.js";
 import type { AwardRecord } from "./awards.types.js";
-import { calcAwardsScores } from "./awards.scorer.js";
+import { queueScoreRecalculation } from "../scoring/scoring.orchestrator.js";
 
 export class AwardsService {
   constructor(
@@ -36,11 +36,7 @@ export class AwardsService {
       display_order:      dto.display_order ?? 0,
     });
 
-    setImmediate(() => {
-      this.runAsyncScoring(studentId).catch((err) => {
-        console.error(`[AwardsService] async scoring failed for student ${studentId}:`, err);
-      });
-    });
+    queueScoreRecalculation(studentId, "awards");
 
     return { ...this.toDto(record), score_recalc_queued: true };
   }
@@ -84,11 +80,7 @@ export class AwardsService {
       display_order: dto.display_order,
     });
 
-    setImmediate(() => {
-      this.runAsyncScoring(studentId).catch((err) => {
-        console.error(`[AwardsService] async scoring failed for student ${studentId}:`, err);
-      });
-    });
+    queueScoreRecalculation(studentId, "awards");
 
     return { ...this.toDto(record), score_recalc_queued: true };
   }
@@ -104,19 +96,7 @@ export class AwardsService {
       );
     }
 
-    setImmediate(() => {
-      this.runAsyncScoring(studentId).catch((err) => {
-        console.error(`[AwardsService] async scoring failed for student ${studentId}:`, err);
-      });
-    });
-  }
-
-  private async runAsyncScoring(studentId: number): Promise<void> {
-    const records = await this.awardsRepo.findAllByStudentId(studentId);
-    const scores = calcAwardsScores(
-      records.map(r => ({ award_level: r.award_level, frequency: r.frequency })),
-    );
-    await this.scoresRepo.upsertAwardsScores(studentId, scores);
+    queueScoreRecalculation(studentId, "awards");
   }
 
   private toDto(record: AwardRecord): AwardResponseDto {

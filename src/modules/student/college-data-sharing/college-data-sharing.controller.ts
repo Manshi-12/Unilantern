@@ -7,7 +7,20 @@ import type { CollegeDataSharingService } from "./college-data-sharing.service.j
 export class CollegeDataSharingController {
   constructor(private readonly service: CollegeDataSharingService) {}
 
-  // ── PUT /students/me/college-data-sharing ──────────────────────────────
+  getPreference = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const studentId = res.locals.studentId as number;
+      const result = await this.service.getCollegeDataSharing(studentId);
+      sendSuccess(res, result, HttpStatus.OK);
+    } catch (err) {
+      next(err);
+    }
+  };
+
   updatePreference = async (
     req: Request,
     res: Response,

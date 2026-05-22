@@ -1,5 +1,6 @@
 import { sql, getPool } from "../../../db/client.js";
 import { EXTRACURRICULAR_ACTIVITIES_TABLE } from "../../../db/schema/extracurricular-activities.js";
+import { STUDENT_PROFILES_TABLE } from "../../../db/schema/student-profiles.js";
 import type {
   ExtracurricularRecord,
   CreateExtracurricularData,
@@ -139,12 +140,12 @@ export class ExtracurricularsRepository {
       .request()
       .input("student_id", sql.Int, data.student_id)
       .input("activity_name", sql.VarChar(250), data.activity_name)
-      .input("activity_type", sql.VarChar(10), data.activity_type)
+      .input("activity_type", sql.VarChar(30), data.activity_type)
       .input("years_involved", sql.VarChar(15), data.years_involved)
       .input("involvement_level", sql.VarChar(20), data.involvement_level)
-      .input("activity_description", sql.VarChar(400), data.activity_description)
-      .input("impact_text", sql.VarChar(300), data.impact_text)
-      .input("impact_level", sql.VarChar(20), data.impact_level)
+      .input("activity_description", sql.VarChar(300), data.activity_description)
+      .input("impact_text", sql.VarChar(200), data.impact_text)
+      .input("impact_level", sql.VarChar(30), data.impact_level)
       .input("hours_per_week", sql.VarChar(10), data.hours_per_week)
       .input("experience_duration_weeks", sql.SmallInt, data.experience_duration_weeks ?? null)
       .input("selective_acceptance_toggle", sql.Bit, data.selective_acceptance_toggle ?? false)
@@ -165,9 +166,9 @@ export class ExtracurricularsRepository {
       .input("display_order", sql.SmallInt, displayOrder)
       .query<RawExtracurricularRow>(
         `DECLARE @OutputTable TABLE (
-            activity_id INT, student_id INT, activity_name VARCHAR(250), activity_type VARCHAR(10),
-            years_involved VARCHAR(15), involvement_level VARCHAR(20), activity_description VARCHAR(400),
-            impact_text VARCHAR(300), impact_level VARCHAR(20), display_order SMALLINT,
+            activity_id INT, student_id INT, activity_name VARCHAR(250), activity_type VARCHAR(30),
+            years_involved VARCHAR(15), involvement_level VARCHAR(20), activity_description VARCHAR(300),
+            impact_text VARCHAR(200), impact_level VARCHAR(30), display_order SMALLINT,
             hours_per_week VARCHAR(10), experience_duration_weeks SMALLINT,
             selective_acceptance_toggle BIT, external_org_toggle BIT, travel_or_residency_toggle BIT,
             people_impacted INT, funds_raised INT, users_acquired INT, hours_delivered INT,
@@ -227,7 +228,7 @@ export class ExtracurricularsRepository {
       setClauses.push("activity_name = @activity_name");
     }
     if (data.activity_type !== undefined) {
-      request.input("activity_type", sql.VarChar(10), data.activity_type);
+      request.input("activity_type", sql.VarChar(30), data.activity_type);
       setClauses.push("activity_type = @activity_type");
     }
     if (data.years_involved !== undefined) {
@@ -239,15 +240,15 @@ export class ExtracurricularsRepository {
       setClauses.push("involvement_level = @involvement_level");
     }
     if (data.activity_description !== undefined) {
-      request.input("activity_description", sql.VarChar(400), data.activity_description);
+      request.input("activity_description", sql.VarChar(300), data.activity_description);
       setClauses.push("activity_description = @activity_description");
     }
     if (data.impact_text !== undefined) {
-      request.input("impact_text", sql.VarChar(300), data.impact_text);
+      request.input("impact_text", sql.VarChar(200), data.impact_text);
       setClauses.push("impact_text = @impact_text");
     }
     if (data.impact_level !== undefined) {
-      request.input("impact_level", sql.VarChar(20), data.impact_level);
+      request.input("impact_level", sql.VarChar(30), data.impact_level);
       setClauses.push("impact_level = @impact_level");
     }
     if (data.hours_per_week !== undefined) {
@@ -374,5 +375,18 @@ export class ExtracurricularsRepository {
          WHERE activity_id = @activity_id AND student_id = @student_id;`,
       );
     return (result.recordset[0]?.count ?? 0) > 0;
+  }
+
+  async findStudentGrade(studentId: number): Promise<number | null> {
+    const pool = await getPool();
+    const result = await pool
+      .request()
+      .input("student_id", sql.Int, studentId)
+      .query<{ grade: number | null }>(
+        `SELECT TOP 1 grade
+           FROM ${STUDENT_PROFILES_TABLE}
+          WHERE student_id = @student_id;`,
+      );
+    return result.recordset[0]?.grade ?? null;
   }
 }

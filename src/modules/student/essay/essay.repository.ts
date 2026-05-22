@@ -158,6 +158,19 @@ export class EssayRepository {
       .input("draft_saved_at",       sql.DateTimeOffset, data.draft_saved_at)
       .input("essay_status",         sql.VarChar(20),  data.essay_status)
       .input("not_started_reason",   sql.VarChar(20),  data.not_started_reason)
+      .input("reviewer_type",        sql.VarChar(25),  data.reviewer_type ?? null)
+      .input(
+        "reviewer_confirmed",
+        sql.Bit,
+        data.reviewer_confirmed === undefined ? null : (data.reviewer_confirmed ? 1 : 0),
+      )
+      .input(
+        "finalization_confirmed",
+        sql.Bit,
+        data.finalization_confirmed === undefined ? null : (data.finalization_confirmed ? 1 : 0),
+      )
+      .input("clear_reviewer",        sql.Bit,          data.reviewer_type === null ? 1 : 0)
+      .input("clear_finalization",    sql.Bit,          data.finalized_at === null ? 1 : 0)
       .query<RawEssayRow>(
         `DECLARE @OutputTable TABLE (
            essay_id INT, student_id INT, essay_prompt NVARCHAR(MAX),
@@ -182,6 +195,10 @@ export class EssayRepository {
                 draft_saved_at        = @draft_saved_at,
                 essay_status          = @essay_status,
                 not_started_reason    = @not_started_reason,
+                reviewer_type         = CASE WHEN @clear_reviewer = 1 THEN NULL ELSE COALESCE(@reviewer_type, reviewer_type) END,
+                reviewer_confirmed    = COALESCE(@reviewer_confirmed, reviewer_confirmed),
+                finalization_confirmed = COALESCE(@finalization_confirmed, finalization_confirmed),
+                finalized_at          = CASE WHEN @clear_finalization = 1 THEN NULL ELSE finalized_at END,
                 updated_at            = SYSDATETIMEOFFSET()
          OUTPUT
            INSERTED.essay_id, INSERTED.student_id, INSERTED.essay_prompt,

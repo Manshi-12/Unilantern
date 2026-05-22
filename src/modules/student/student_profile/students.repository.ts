@@ -48,7 +48,7 @@ export class StudentsRepository {
       .input("student_id", sql.Int, studentId)
       .query<RawStudentRow & {
         grade: number | null;
-        graduation_year: number;
+        graduation_year: number | null;
         date_of_birth: Date | null;
         high_school_name: string | null;
         state_of_residence: string | null;
@@ -78,22 +78,10 @@ export class StudentsRepository {
     const row = result.recordset[0];
     if (!row) return null; // Student doesn't exist at all
 
-    // If student exists but profile is missing (INNER JOIN would have failed here)
+    // Profile rows are created during signup with the student's real signup data.
+    // Do not synthesize graduation_year here; scoring depends on real profile data.
     if (row.graduation_year === null) {
-      const currentYear = new Date().getFullYear();
-      const defaultGradYear = currentYear + 1; // Default to next year
-
-      // Create a default profile record for this student
-      await pool.request()
-        .input("student_id", sql.Int, studentId)
-        .input("grad_year",  sql.SmallInt, defaultGradYear)
-        .query(
-          `INSERT INTO ${STUDENT_PROFILES_TABLE} (student_id, graduation_year)
-           VALUES (@student_id, @grad_year);`
-        );
-
-      // Recursive call to get the newly created profile
-      return this.getStudentProfileByStudentId(studentId);
+      return null;
     }
 
     return {

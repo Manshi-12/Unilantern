@@ -12,6 +12,14 @@ interface RateEntry {
   expiresAt: number;
 }
 
+export const RATE_LIMITER_STORAGE_MODE = "memory";
+
+if (process.env.NODE_ENV === "production") {
+  console.warn(
+    "[rate-limiter] Using in-memory counters. Run a single Node process only, or replace this with a shared persistent store before production traffic.",
+  );
+}
+
 const store = new Map<string, RateEntry>();
 
 export function rateLimiter(

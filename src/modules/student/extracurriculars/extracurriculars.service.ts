@@ -13,6 +13,8 @@ import type {
   ExtracurricularReorderResponseDto,
 } from "./dto/response.dto.js";
 import type { ExtracurricularsRepository } from "./extracurriculars.repository.js";
+import type { ScoresRepository } from "../academics/scores.repository.js";
+import { queueScoreRecalculation } from "../scoring/scoring.orchestrator.js";
 import type {
   ExtracurricularRecord,
   CreateExtracurricularData,
@@ -21,7 +23,10 @@ import type {
 } from "./extracurriculars.types.js";
 
 export class ExtracurricularsService {
-  constructor(private readonly extracurricularsRepo: ExtracurricularsRepository) {}
+  constructor(
+    private readonly extracurricularsRepo: ExtracurricularsRepository,
+    private readonly scoresRepo: ScoresRepository,
+  ) {}
 
   async getExtracurriculars(
     studentId: number,
@@ -88,7 +93,7 @@ export class ExtracurricularsService {
     };
 
     const activity = await this.extracurricularsRepo.createExtracurricular(data);
-    const scoreQueued = await this.enqueueScoreRecalc(studentId, false);
+    const scoreQueued = this.enqueueScoreRecalc(studentId, false);
 
     return {
       activity_id: String(activity.activity_id),
@@ -213,7 +218,7 @@ export class ExtracurricularsService {
     }
 
     await this.extracurricularsRepo.updateExtracurricular(activityId, data);
-    const scoreQueued = await this.enqueueScoreRecalc(studentId, false);
+    const scoreQueued = this.enqueueScoreRecalc(studentId, false);
 
     const activity = await this.extracurricularsRepo.getExtracurricularById(activityId);
     if (!activity) {
@@ -235,7 +240,7 @@ export class ExtracurricularsService {
     }
 
     await this.extracurricularsRepo.deleteExtracurricular(activityId);
-    await this.enqueueScoreRecalc(studentId, false);
+    this.enqueueScoreRecalc(studentId, false);
   }
 
   async reorderExtracurriculars(
@@ -279,10 +284,11 @@ export class ExtracurricularsService {
     };
   }
 
-  private async enqueueScoreRecalc(studentId: number, gradeChanged: boolean): Promise<boolean> {
+  private enqueueScoreRecalc(studentId: number, gradeChanged: boolean): boolean {
     console.log(
       `[extracurriculars] queued readiness recalculation for student_id=${studentId} grade_changed=${gradeChanged}`,
     );
+    queueScoreRecalculation(studentId, "extracurriculars");
     return true;
   }
 }

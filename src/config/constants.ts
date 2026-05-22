@@ -1,4 +1,4 @@
-export const OTP_TTL_SECONDS = 60;
+export const OTP_TTL_SECONDS = 300;
 export const OTP_MAX_ATTEMPTS = 5;
 
 /** Short-lived JWT returned from POST /otp/verify; used by /signup and /login. */
@@ -9,10 +9,10 @@ export const BCRYPT_COST = 10;
 export const JWT_ACCESS_TTL = "15m";
 
 export const RATE_LIMITS = {
-  OTP_SEND:      { limit: 100, window: 3600 },
-  OTP_VERIFY:    { limit: 100, window: 3600 },
-  SIGNUP:        { limit: 100, window: 3600 },
-  LOGIN:         { limit: 100, window: 3600 },
+  OTP_SEND:      { limit: 5,   window: 3600 },
+  OTP_VERIFY:    { limit: 10,  window: 3600 },
+  SIGNUP:        { limit: 3,   window: 3600 },
+  LOGIN:         { limit: 10,  window: 3600 },
   PROFILE_VIEW:  { limit: 120, window: 60 },
   PROFILE_UPDATE:{ limit: 30,  window: 60 },
   EC_LIST:       { limit: 120, window: 60 },
@@ -40,4 +40,4 @@ export const OTP_PURPOSE = {
   PHONE_CHANGE: "phone_change",
 } as const;
 
-export const REFRESH_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
+export const REFRESH_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days

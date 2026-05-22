@@ -11,6 +11,7 @@ import type {
 } from "./dto/response.dto.js";
 import type { ServiceRepository } from "./service.repository.js";
 import type { ServiceEntryRecord } from "./service.types.js";
+import { queueScoreRecalculation } from "../scoring/scoring.orchestrator.js";
 
 export class ServiceService {
   constructor(private readonly serviceRepo: ServiceRepository) {}
@@ -79,6 +80,6 @@ export class ServiceService {
 
   private async enqueueScoreRecalc(studentId: number): Promise<boolean> {
     console.log(`[service] queued readiness recalculation for student_id=${studentId}`);
-    return true;
+    return queueScoreRecalculation(studentId, "service");
   }
 }

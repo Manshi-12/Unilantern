@@ -56,6 +56,7 @@ export interface CreateStudentData {
   school_id: number | null;
   invite_token_used: string | null;
   // profile fields
+  grade?: number;
   graduation_year?: number;
   date_of_birth?: string;
   high_school_name?: string;
