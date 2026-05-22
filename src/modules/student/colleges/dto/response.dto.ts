@@ -6,7 +6,6 @@ import type { FitClassification, MajorSelectivity, SavedCollegeStatus } from "./
 export interface CollegeResponseDto {
   college_id: string;
   name: string;
-  city: string | null;
   state: string | null;
   website: string | null;
   logo: string | null;
@@ -27,7 +26,6 @@ export interface CollegeSearchResponseDto {
 export interface CollegeDetailResponseDto {
   college_id: string;
   name: string;
-  city: string | null;
   state: string | null;
   region: string | null;
   institution_type: string | null;
@@ -49,7 +47,6 @@ export interface SavedCollegeResponseDto {
   saved_college_id: string;
   college_id: string;
   college_name: string;
-  college_city: string | null;
   college_state: string | null;
   college_website: string | null;
   college_logo: string | null;

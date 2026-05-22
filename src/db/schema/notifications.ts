@@ -18,7 +18,6 @@ export const notificationsColumns = {
   is_read: "is_read",
   is_critical: "is_critical",
   read_at: "read_at",
-  metadata: "metadata",
   created_at: "created_at",
   updated_at: "updated_at",
 } as const;
@@ -41,7 +40,6 @@ BEGIN
     is_read            BIT NOT NULL DEFAULT 0,
     is_critical        BIT NOT NULL DEFAULT 0,
     read_at            DATETIMEOFFSET NULL,
-    metadata           NVARCHAR(MAX) NULL,
     created_at         DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET(),
     updated_at         DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET()
   );

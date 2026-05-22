@@ -290,7 +290,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone_number\": \"+12125551236\",\n  \"email\": \"lewis.hamilton@example.com\",\n  \"full_name\": \"Lewis Hamilton\",\n  \"graduation_year\": 2027,\n  \"date_of_birth\": \"2007-09-12\",\n  \"high_school_name\": \"Lincoln High School\",\n  \"state_of_residence\": \"California\",\n  \"confirms_age_13_plus\": true,\n  \"confirms_parental_permission\": true,\n  \"college_data_share_consent\": true\n}",
+              "raw": "{\n  \"phone_number\": \"+12125551237\",\n  \"email\": \"alex.albon@westvalleyacademy.org\",\n  \"full_name\": \"Alex Albon\",\n  \"graduation_year\": 2027,\n  \"date_of_birth\": \"2009-09-12\",\n  \"high_school_name\": \"West Valley Academy\",\n  \"state_of_residence\": \"California\",\n  \"confirms_age_13_plus\": true,\n  \"confirms_parental_permission\": true,\n  \"college_data_share_consent\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -310,7 +310,7 @@
                 "register"
               ]
             },
-            "description": "Complete signup with verified phone number. Returns access_token and refresh_token.\n\nRequired fields:\n- phone_number (E.164 format)\n- otp_code (from OTP verify)\n- email\n- full_name\n- graduation_year (integer)\n- date_of_birth (YYYY-MM-DD)\n- high_school_name\n- state_of_residence\n- confirms_age_13_plus (boolean, must be true)\n- confirms_parental_permission (boolean, must be true)"
+            "description": "Complete signup with verified phone number. Returns access_token and refresh_token.\n\nRequired fields:\n\n- phone_number (E.164 format)\n    \n- otp_code (from OTP verify)\n    \n- email\n    \n- full_name\n    \n- graduation_year (integer)\n    \n- date_of_birth (YYYY-MM-DD)\n    \n- high_school_name\n    \n- state_of_residence\n    \n- confirms_age_13_plus (boolean, must be true)\n    \n- confirms_parental_permission (boolean, must be true)"
           },
           "response": []
         },
@@ -326,7 +326,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone_number\": \"+12125551236\",\n  \"otp_code\": \"136568\"\n}",
+              "raw": "{\n  \"phone_number\": \"+12125551237\",\n  \"otp_code\": \"071844\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -362,7 +362,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone_number\": \"+12125551236\"\n}",
+              "raw": "{\n  \"phone_number\": \"+12125551237\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -397,7 +397,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"phone_number\": \"+12125551236\",\n    \"otp_code\": \"089484\"\n}",
+              "raw": "{\n    \"phone_number\": \"+12125551237\",\n    \"otp_code\": \"986161\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -815,7 +815,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"graduation_year\": 2026\n}",
+              "raw": "{\n  \"date_of_birth\":\"2009-10-12\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

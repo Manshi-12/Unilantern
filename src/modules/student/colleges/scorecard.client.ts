@@ -14,7 +14,6 @@ const SCORECARD_FIELDS = [
   "id",
   "school.name",
   "school.school_url",
-  "school.city",
   "school.state",
   "school.ownership",                      // 1=public, 2=private-nonprofit, 3=private-forprofit
   "school.region_id",
@@ -31,7 +30,6 @@ interface ScorecardSchool {
   "id": number;
   "school.name": string;
   "school.school_url": string | null;
-  "school.city": string | null;
   "school.state": string | null;
   "school.ownership": number | null;
   "school.region_id": number | null;
@@ -48,7 +46,6 @@ export interface TransformedCollege {
   name: string;
   website: string | null;
   logo: string | null;
-  city: string | null;
   state: string | null;
   is_public: boolean | null;
   acceptance_rate: number | null;
@@ -142,7 +139,6 @@ function transformScorecardResult(school: ScorecardSchool): TransformedCollege {
     name: school["school.name"],
     website: rawUrl ? cleanUrl(rawUrl) : null,
     logo: domain ? buildLogoUrl(domain) : null,
-    city: school["school.city"] ?? null,
     state: school["school.state"] ?? null,
     is_public: ownership != null ? ownership === 1 : null,
     acceptance_rate: admissionRate != null

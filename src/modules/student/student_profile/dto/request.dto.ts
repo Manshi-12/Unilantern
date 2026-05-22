@@ -4,4 +4,5 @@ export interface StudentProfileUpdateDto {
   graduation_year?: number;
   high_school_name?: string;
   state?: string;
+  date_of_birth?: string;
 }

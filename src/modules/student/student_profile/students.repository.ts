@@ -49,6 +49,7 @@ export class StudentsRepository {
       .query<RawStudentRow & {
         grade: number | null;
         graduation_year: number;
+        date_of_birth: Date | null;
         high_school_name: string | null;
         state_of_residence: string | null;
         profile_complete: boolean;
@@ -62,6 +63,7 @@ export class StudentsRepository {
             s.school_id,
             sp.grade,
             sp.graduation_year,
+            sp.date_of_birth,
             sp.high_school_name,
             sp.state_of_residence,
             sp.profile_complete,
@@ -101,6 +103,7 @@ export class StudentsRepository {
       school_id: row.school_id,
       grade: row.grade,
       graduation_year: row.graduation_year,
+      date_of_birth: row.date_of_birth,
       high_school_name: row.high_school_name,
       state_of_residence: row.state_of_residence,
       profile_complete: row.profile_complete,
@@ -144,6 +147,10 @@ export class StudentsRepository {
     if (data.graduation_year !== undefined) {
       request.input("graduation_year", sql.SmallInt, data.graduation_year);
       setClauses.push("graduation_year = @graduation_year");
+    }
+    if (data.date_of_birth !== undefined) {
+      request.input("date_of_birth", sql.Date, data.date_of_birth);
+      setClauses.push("date_of_birth = @date_of_birth");
     }
     if (data.high_school_name !== undefined) {
       request.input("high_school_name", sql.VarChar(300), data.high_school_name);

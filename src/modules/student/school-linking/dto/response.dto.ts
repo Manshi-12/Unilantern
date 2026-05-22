@@ -3,7 +3,6 @@ export type SchoolType = "public" | "private" | "charter";
 export interface SchoolSearchResultDto {
   school_id: number;
   school_name: string;
-  city: string | null;
   state: string | null;
   school_type: SchoolType | null;
   email_domain: string | null;
@@ -29,10 +28,8 @@ export interface LinkSchoolResponseDto {
 export interface LinkedSchoolResponseDto {
   school_id: number;
   school_name: string;
-  city: string | null;
   state: string | null;
   school_type: SchoolType | null;
-  website_url: string | null;
   advisor_visibility_enabled: boolean;
 }
 

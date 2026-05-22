@@ -15,8 +15,6 @@ export const notificationPreferencesColumns = {
   delivery_channel: "delivery_channel",
   enabled: "enabled",
   is_critical: "is_critical",
-  quiet_hours_start: "quiet_hours_start",
-  quiet_hours_end: "quiet_hours_end",
   created_at: "created_at",
   updated_at: "updated_at",
 } as const;
@@ -36,8 +34,6 @@ BEGIN
                         CHECK (delivery_channel IN ('in_app','push','email')),
     enabled            BIT NOT NULL DEFAULT 1,
     is_critical        BIT NOT NULL DEFAULT 0,
-    quiet_hours_start  TIME NULL,
-    quiet_hours_end    TIME NULL,
     created_at         DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET(),
     updated_at         DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET()
   );

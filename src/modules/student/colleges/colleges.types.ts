@@ -10,7 +10,6 @@ export type MajorSelectivity = "standard" | "competitive" | "highly_competitive"
 export interface CollegeRecord {
   college_id: number;
   name: string;
-  city: string | null;
   state: string | null;
   region: string | null;
   institution_type: string | null;
@@ -54,7 +53,6 @@ export interface SavedCollegeRecord {
  */
 export interface SavedCollegeWithDetails extends SavedCollegeRecord {
   college_name: string;
-  college_city: string | null;
   college_state: string | null;
   college_website_url: string | null;
   college_logo_url: string | null;
@@ -66,7 +64,6 @@ export interface SavedCollegeWithDetails extends SavedCollegeRecord {
  */
 export interface UpsertCollegeData {
   name: string;
-  city: string | null;
   state: string | null;
   website_url: string | null;
   acceptance_rate: number | null;

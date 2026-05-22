@@ -23,6 +23,7 @@ export const studentEssaysColumns = {
   revised_at:             "revised_at",
   reviewed_at:            "reviewed_at",
   finalized_at:           "finalized_at",
+  edits_since_draft:      "edits_since_draft",
   finalization_confirmed: "finalization_confirmed",
   previous_word_count:    "previous_word_count",
   edit_session_count:     "edit_session_count",
@@ -70,6 +71,7 @@ BEGIN
     revised_at              DATETIMEOFFSET     NULL,
     reviewed_at             DATETIMEOFFSET     NULL,
     finalized_at            DATETIMEOFFSET     NULL,
+    edits_since_draft       INT                NOT NULL DEFAULT 0,
 
     finalization_confirmed  BIT                NOT NULL DEFAULT 0,
     previous_word_count     INT                NOT NULL DEFAULT 0,

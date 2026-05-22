@@ -9,7 +9,6 @@ export const COLLEGES_TABLE = "colleges";
 export const collegesColumns = {
   college_id:       "college_id",
   name:             "name",
-  city:             "city",
   state:            "state",
   region:           "region",
   institution_type: "institution_type",

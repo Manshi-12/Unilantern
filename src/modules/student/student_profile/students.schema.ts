@@ -14,6 +14,11 @@ export const profileUpdateSchema = z
       .optional(),
     high_school_name: z.string().trim().min(1).max(300).optional(),
     state: z.string().trim().min(1).max(100).optional(),
+    date_of_birth: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "date_of_birth must be YYYY-MM-DD")
+      .refine((v) => !Number.isNaN(new Date(`${v}T00:00:00Z`).getTime()), "Invalid date")
+      .optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required",

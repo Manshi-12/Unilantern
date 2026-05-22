@@ -57,6 +57,11 @@ export class StudentsService {
       profileUpdates.graduation_year = dto.graduation_year;
       updatedFields.push("graduation_year");
     }
+    const currentDob = profile.date_of_birth ? profile.date_of_birth.toISOString().split("T")[0] : undefined;
+    if (dto.date_of_birth !== undefined && dto.date_of_birth !== currentDob) {
+      profileUpdates.date_of_birth = dto.date_of_birth;
+      updatedFields.push("date_of_birth");
+    }
     if (
       dto.high_school_name !== undefined &&
       dto.high_school_name !== profile.high_school_name
@@ -102,10 +107,10 @@ export class StudentsService {
       grade: profile.grade,
       graduation_year: profile.graduation_year,
       high_school_name: profile.high_school_name,
+      date_of_birth: profile.date_of_birth ? profile.date_of_birth.toISOString().split("T")[0] : null,
       school_id: profile.school_id,
       account_status: profile.account_status,
       state: profile.state_of_residence,
-      city: null,
       is_profile_complete: profile.profile_complete || completionPct === 100,
       profile_completion_pct: completionPct,
       created_at: profile.created_at.toISOString(),

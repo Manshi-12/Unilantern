@@ -69,11 +69,8 @@ CREATE TABLE schools (
     -- ── Core identification ───────────────────────────────────────────────────
     school_name             VARCHAR(300)        NOT NULL,
     address                 VARCHAR(400)        NULL,
-    city                    VARCHAR(150)        NULL,
     state                   VARCHAR(100)        NULL,   -- includes 'District of Columbia'
-    zip_code                VARCHAR(20)         NULL,
     district                VARCHAR(300)        NULL,
-    website_url             VARCHAR(500)        NULL,
 
     -- ── Registration & lifecycle ──────────────────────────────────────────────
     -- school_type: public | private | charter
@@ -419,7 +416,7 @@ CREATE TABLE otp_verifications (
     -- purpose: signup | login | password_reset | phone_change
     purpose                 VARCHAR(15)         NOT NULL
                                                 CONSTRAINT chk_otp_purpose
-                                                CHECK (purpose IN ('signup', 'login', 'password_reset', 'phone_change')),
+                                                CHECK (purpose IN ('login', 'signup', 'phone_change')),
 
     -- ── Code (store hash — never plaintext) ───────────────────────────────────
     otp_code_hash           VARCHAR(255)        NOT NULL,   -- bcrypt of 6-digit code
@@ -910,6 +907,7 @@ CREATE TABLE student_essays (
     revised_at              DATETIMEOFFSET      NULL,
     reviewed_at             DATETIMEOFFSET      NULL,
     finalized_at            DATETIMEOFFSET      NULL,
+    edits_since_draft       INT                             DEFAULT 0,
 
     -- ── Anti-gaming: reflection lock ──────────────────────────────────────────
     last_major_edit_at      DATETIMEOFFSET      NULL,       -- reset on >= 50-word net delta

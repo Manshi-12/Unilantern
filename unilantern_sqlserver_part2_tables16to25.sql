@@ -51,7 +51,6 @@ CREATE TABLE colleges (
 
     -- ── Core identification ───────────────────────────────────────────────────
     name                    VARCHAR(300)        NOT NULL,
-    city                    VARCHAR(150)        NULL,
     state                   VARCHAR(100)        NULL,       -- includes 'District of Columbia'
     region                  VARCHAR(100)        NULL,       -- geographic region for analytics
     institution_type        VARCHAR(50)         NULL,       -- university | college | community
@@ -392,9 +391,6 @@ CREATE TABLE notifications (
     is_read                 BIT                 NOT NULL    DEFAULT 0,
     read_at                 DATETIMEOFFSET      NULL,
 
-    -- ── Metadata & Extra Data ────────────────────────────────────────────────
-    metadata                NVARCHAR(MAX)       NULL,       -- JSON metadata for context
-
     -- ── Audit ─────────────────────────────────────────────────────────────────
     created_at              DATETIMEOFFSET      NOT NULL    DEFAULT SYSDATETIMEOFFSET(),
     updated_at              DATETIMEOFFSET      NOT NULL    DEFAULT SYSDATETIMEOFFSET(),
@@ -443,10 +439,6 @@ CREATE TABLE notification_preferences (
     delivery_channel        VARCHAR(20)         NOT NULL,   -- in_app | push | email
     enabled                 BIT                 NOT NULL    DEFAULT 1,
     is_critical             BIT                 NOT NULL    DEFAULT 0,    -- critical notifications always deliver
-
-    -- ── Quiet hours (do not notify in this window) ─────────────────────────────
-    quiet_hours_start       TIME                NULL,       -- e.g. 22:00 (10 PM)
-    quiet_hours_end         TIME                NULL,       -- e.g. 08:00 (8 AM)
 
     -- ── Audit ─────────────────────────────────────────────────────────────────
     created_at              DATETIMEOFFSET      NOT NULL    DEFAULT SYSDATETIMEOFFSET(),
@@ -782,3 +774,51 @@ GO
 -- Total: 25 tables across 2 files
 -- Auth architecture: 4 separate role-specific auth tables (Tech Lead directive)
 -- =============================================================================
+-- =============================================================================
+-- TABLE 26 — push_tokens
+-- Purpose : Stores FCM (Android) and APNs (iOS) device tokens for push notifications.
+--           Tokens are marked inactive on delivery failure after 3 retries.
+-- =============================================================================
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'push_tokens')
+BEGIN
+  CREATE TABLE push_tokens (
+    push_token_id  INT IDENTITY(1,1) PRIMARY KEY,
+    user_id        INT NOT NULL,
+    user_role      VARCHAR(30) NOT NULL CHECK (user_role IN ('student','advisor','school_admin','unilantern_admin')),
+    device_id      VARCHAR(128) NULL,
+    push_token     VARCHAR(500) NOT NULL,
+    platform       VARCHAR(20) NOT NULL CHECK (platform IN ('ios','android','web')),
+    device_name    NVARCHAR(200) NULL,
+    is_active      BIT NOT NULL DEFAULT 1,
+    last_used_at   DATETIMEOFFSET NULL,
+    created_at     DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET(),
+    updated_at     DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET()
+  );
+END;
+
+-- ── device_id (idempotent add for existing DBs) ─────────────────────────────
+IF COL_LENGTH('dbo.push_tokens', 'device_id') IS NULL
+BEGIN
+  ALTER TABLE dbo.push_tokens ADD device_id VARCHAR(128) NULL;
+END;
+
+-- ── Unique: one row per logical device per user (filtered; NULL device_id = legacy rows) ─
+IF NOT EXISTS (
+  SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.push_tokens') AND name = 'uidx_push_tokens_user_device'
+)
+BEGIN
+  CREATE UNIQUE NONCLUSTERED INDEX uidx_push_tokens_user_device
+    ON dbo.push_tokens(user_id, user_role, device_id)
+    WHERE device_id IS NOT NULL;
+END;
+
+-- ── Index for active token lookups ───────────────────────────────────────────
+IF NOT EXISTS (
+  SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.push_tokens') AND name = 'idx_push_tokens_active'
+)
+BEGIN
+  CREATE INDEX idx_push_tokens_active
+    ON dbo.push_tokens(user_id, user_role, is_active)
+    WHERE is_active = 1;
+END;
+GO

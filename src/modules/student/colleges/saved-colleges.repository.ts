@@ -27,7 +27,6 @@ type RawSavedRow = {
 
 type RawSavedWithDetailsRow = RawSavedRow & {
   college_name: string;
-  college_city: string | null;
   college_state: string | null;
   college_website_url: string | null;
   college_logo_url: string | null;
@@ -54,7 +53,6 @@ function mapDetailRow(row: RawSavedWithDetailsRow): SavedCollegeWithDetails {
   return {
     ...mapSavedRow(row),
     college_name:            row.college_name,
-    college_city:            row.college_city,
     college_state:           row.college_state,
     college_website_url:     row.college_website_url,
     college_logo_url:        row.college_logo_url,
@@ -83,7 +81,6 @@ export class SavedCollegesRepository {
            sc.saved_at,
            sc.updated_at,
            c.name            AS college_name,
-           c.city            AS college_city,
            c.state           AS college_state,
            c.website_url     AS college_website_url,
            c.logo_url        AS college_logo_url,

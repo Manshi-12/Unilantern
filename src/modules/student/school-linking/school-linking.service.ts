@@ -27,7 +27,6 @@ export class SchoolLinkingService {
     return schools.map((school) => ({
       school_id: school.school_id,
       school_name: school.school_name,
-      city: school.city,
       state: school.state,
       school_type: school.school_type,
       email_domain: school.email_domain,
@@ -137,10 +136,8 @@ export class SchoolLinkingService {
     return {
       school_id: school.school_id,
       school_name: school.school_name,
-      city: school.city,
       state: school.state,
       school_type: school.school_type,
-      website_url: school.website_url,
       advisor_visibility_enabled: Boolean(school.dashboard_enabled),
     };
   }

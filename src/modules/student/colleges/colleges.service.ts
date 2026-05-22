@@ -254,7 +254,6 @@ export class CollegesService {
 
     return this.collegesRepo.create({
       name: ext.name,
-      city: ext.city,
       state: ext.state,
       website_url: ext.website,
       acceptance_rate: validAcceptanceRate,
@@ -310,7 +309,6 @@ export class CollegesService {
   private toCollegeDto = (r: CollegeRecord): CollegeResponseDto => ({
     college_id: String(r.college_id),
     name: r.name,
-    city: r.city,
     state: r.state,
     website: r.website_url,
     logo: r.logo_url,
@@ -322,7 +320,6 @@ export class CollegesService {
   private toCollegeDetailDto = (r: CollegeRecord): CollegeDetailResponseDto => ({
     college_id: String(r.college_id),
     name: r.name,
-    city: r.city,
     state: r.state,
     region: r.region,
     institution_type: r.institution_type,
@@ -343,7 +340,6 @@ export class CollegesService {
     saved_college_id: String(r.saved_college_id),
     college_id: String(r.college_id),
     college_name: r.college_name,
-    college_city: r.college_city,
     college_state: r.college_state,
     college_website: r.college_website_url,
     college_logo: r.college_logo_url,
@@ -365,7 +361,6 @@ export class CollegesService {
     saved_college_id: String(r.saved_college_id),
     college_id: String(r.college_id),
     college_name: c?.name ?? "",
-    college_city: c?.city ?? null,
     college_state: c?.state ?? null,
     college_website: c?.website_url ?? null,
     college_logo: c?.logo_url ?? null,

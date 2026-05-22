@@ -8,7 +8,6 @@ import type { CollegeRecord, UpsertCollegeData } from "./colleges.types.js";
 type RawCollegeRow = {
   college_id: number;
   name: string;
-  city: string | null;
   state: string | null;
   region: string | null;
   institution_type: string | null;
@@ -34,7 +33,6 @@ function mapRow(row: RawCollegeRow): CollegeRecord {
   return {
     college_id:       row.college_id,
     name:             row.name,
-    city:             row.city,
     state:            row.state,
     region:           row.region,
     institution_type: row.institution_type,
@@ -165,7 +163,6 @@ export class CollegesRepository {
     const result = await pool
       .request()
       .input("name",             sql.VarChar(300),  data.name)
-      .input("city",             sql.VarChar(150),  data.city)
       .input("state",            sql.VarChar(100),  data.state)
       .input("website_url",      sql.VarChar(500),  data.website_url)
       .input("acceptance_rate",  sql.Decimal(5, 2), data.acceptance_rate)
@@ -181,7 +178,6 @@ export class CollegesRepository {
         `DECLARE @OutputTable TABLE (
            college_id INT,
            name VARCHAR(300),
-           city VARCHAR(150) NULL,
            state VARCHAR(100) NULL,
            region VARCHAR(100) NULL,
            institution_type VARCHAR(50) NULL,
@@ -204,14 +200,13 @@ export class CollegesRepository {
          );
 
          INSERT INTO ${COLLEGES_TABLE}
-           (name, city, state, website_url, acceptance_rate,
+           (name, state, website_url, acceptance_rate,
             is_test_optional, is_public, logo_url, data_source,
             sat_25th, sat_75th, act_25th, act_75th,
             last_data_refresh)
          OUTPUT
            INSERTED.college_id,
            INSERTED.name,
-           INSERTED.city,
            INSERTED.state,
            INSERTED.region,
            INSERTED.institution_type,
@@ -233,7 +228,7 @@ export class CollegesRepository {
            INSERTED.updated_at
          INTO @OutputTable
          VALUES
-           (@name, @city, @state, @website_url, @acceptance_rate,
+           (@name, @state, @website_url, @acceptance_rate,
             @is_test_optional, @is_public, @logo_url, @data_source,
             @sat_25th, @sat_75th, @act_25th, @act_75th,
             SYSDATETIMEOFFSET());
@@ -289,7 +284,6 @@ export class CollegesRepository {
       `DECLARE @OutputTable TABLE (
          college_id INT,
          name VARCHAR(300),
-         city VARCHAR(150) NULL,
          state VARCHAR(100) NULL,
          region VARCHAR(100) NULL,
          institution_type VARCHAR(50) NULL,
@@ -316,7 +310,6 @@ export class CollegesRepository {
         OUTPUT
           INSERTED.college_id,
           INSERTED.name,
-          INSERTED.city,
           INSERTED.state,
           INSERTED.region,
           INSERTED.institution_type,

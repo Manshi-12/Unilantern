@@ -19,8 +19,8 @@ export class SchoolLinkingRepository {
 
     const result = await request.query<SchoolRecord>(`
       SELECT TOP (@limit)
-        school_id, school_name, city, state, school_type, email_domain,
-        school_status, dashboard_enabled, website_url, is_active
+        school_id, school_name, state, school_type, email_domain,
+        school_status, dashboard_enabled, is_active
       FROM ${SCHOOLS_TABLE}
       WHERE is_active = 1
         AND school_name LIKE @q
@@ -39,8 +39,8 @@ export class SchoolLinkingRepository {
       .input("school_id", sql.Int, schoolId)
       .query<SchoolRecord>(`
         SELECT TOP 1
-          school_id, school_name, city, state, school_type, email_domain,
-          school_status, dashboard_enabled, website_url, is_active
+          school_id, school_name, state, school_type, email_domain,
+          school_status, dashboard_enabled, is_active
         FROM ${SCHOOLS_TABLE}
         WHERE school_id = @school_id;
       `);

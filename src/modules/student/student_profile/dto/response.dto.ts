@@ -7,7 +7,7 @@ export interface StudentProfileResponseDto {
   school_id: number | null;
   account_status: "independent" | "school_linked";
   state: string | null;
-  city: string | null;
+  date_of_birth: string | null;
   is_profile_complete: boolean;
   profile_completion_pct: number;
   created_at: string;

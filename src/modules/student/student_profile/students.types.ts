@@ -7,6 +7,7 @@ export interface StudentProfileRecord {
   graduation_year: number;
   high_school_name: string | null;
   state_of_residence: string | null;
+  date_of_birth: Date | null;
   profile_complete: boolean;
   created_at: Date;
   updated_at: Date;
@@ -17,4 +18,5 @@ export interface UpdateStudentProfileData {
   graduation_year?: number;
   high_school_name?: string;
   state_of_residence?: string;
+  date_of_birth?: string;
 }
