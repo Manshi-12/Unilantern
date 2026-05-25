@@ -24,6 +24,7 @@
     "jose": "^5.9.6",
     "msnodesqlv8": "^5.1.9",
     "mssql": "^11.0.1",
+    "redis": "^5.12.1",
     "uuid": "^11.0.3",
     "zod": "^4.4.1"
   },
@@ -32,7 +33,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/mssql": "^9.1.5",
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.9.1",
     "@types/uuid": "^10.0.0",
     "cross-env": "^10.1.0",
     "nodemon": "^3.1.14",

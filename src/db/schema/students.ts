@@ -23,7 +23,6 @@ export const studentsColumns = {
   invite_token_used: "invite_token_used",
   last_login_at: "last_login_at",
   deleted_at: "deleted_at",
-  college_data_sharing_enabled: "college_data_sharing_enabled",
   created_at: "created_at",
   updated_at: "updated_at",
 } as const;
@@ -46,7 +45,6 @@ BEGIN
     invite_token_used VARCHAR(500) NULL,
     last_login_at     DATETIMEOFFSET NULL,
     deleted_at        DATETIMEOFFSET NULL,
-    college_data_sharing_enabled BIT NOT NULL DEFAULT 1,
     created_at        DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET(),
     updated_at        DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET()
   );
@@ -84,11 +82,10 @@ BEGIN
     WHERE email IS NOT NULL;
 END;
 
--- College data sharing opt-out (default: opted in)
-IF COL_LENGTH('dbo.students', 'college_data_sharing_enabled') IS NULL
+-- Safety: Remove phantom college_data_sharing_enabled column if it was added
+IF COL_LENGTH('dbo.students', 'college_data_sharing_enabled') IS NOT NULL
 BEGIN
   ALTER TABLE dbo.students
-    ADD college_data_sharing_enabled BIT NOT NULL
-      CONSTRAINT DF_students_college_data_sharing_enabled DEFAULT 1;
+    DROP COLUMN college_data_sharing_enabled;
 END;
 `;

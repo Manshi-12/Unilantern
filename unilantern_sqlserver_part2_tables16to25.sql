@@ -597,6 +597,11 @@ CREATE INDEX idx_analytics_tab_created
     ON analytics_events (tab_name, created_at DESC)
     WHERE tab_name IS NOT NULL;
 
+-- Index on tab_name alone for simple tab filtering
+CREATE INDEX idx_analytics_events_tab_name
+    ON analytics_events (tab_name)
+    WHERE tab_name IS NOT NULL;
+
 CREATE INDEX idx_analytics_event_name
     ON analytics_events (event_name, created_at DESC);
 

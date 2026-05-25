@@ -1,18 +1,18 @@
 import type { ServiceEntryRecord } from "./service.types.js";
 
 const HOURS_NORM: Record<ServiceEntryRecord["total_hours_range"], number> = {
-  under_50: 0.25,
-  "50_100": 0.50,
-  "100_200": 0.75,
+  under_50: 0.40,
+  "50_100": 0.65,
+  "100_200": 0.85,
   "200_plus": 1.00,
 };
 
 const ACTION_BONUS: Record<ServiceEntryRecord["action_type"], number> = {
-  direct_service: 0.00,
-  fundraising: 0.05,
-  teaching: 0.08,
-  organizing: 0.10,
-  independent: 0.12,
+  direct_service: 0.60,
+  fundraising: 0.70,
+  teaching: 0.80,
+  organizing: 0.85,
+  independent: 1.00
 };
 
 export interface ServiceScores {
@@ -33,36 +33,41 @@ export function calcServiceScores(entries: ServiceEntryRecord[]): ServiceScores 
     return { service_norm: 0, service_contrib: 0, service_band: "foundational" };
   }
 
-  const bestNorm = Math.max(...entries.map(calcEntryNorm));
-  const breadthBonus = Math.min((entries.length - 1) * 0.05, 0.10);
-  const service_norm = Math.min(bestNorm + breadthBonus, 1);
+  // Proposal §7: Compute action_norm for each entry
+  const actionNorms = entries.map((e) => 
+    HOURS_NORM[e.total_hours_range] + ACTION_BONUS[e.action_type]
+  );
+  
+  // Sort by action norm descending, take top 2 (or fewer if less than 2 entries)
+  const topActionNorms = actionNorms
+    .sort((a, b) => b - a)
+    .slice(0, Math.min(2, entries.length));
+  
+  // Average of top 2 (or just the single entry if only 1 exists)
+  const actionNormFinal = topActionNorms.length > 0 
+    ? topActionNorms.reduce((a, b) => a + b, 0) / topActionNorms.length
+    : 0;
+  
+  // Hours norm: average of all entries
+  const hoursNormAvg = entries.length > 0
+    ? entries.reduce((sum, e) => sum + HOURS_NORM[e.total_hours_range], 0) / entries.length
+    : 0;
+  
+  // Proposal formula: service_norm_raw = 0.65 * hours_norm + 0.35 * action_norm_final
+  const serviceNormRaw = 0.65 * hoursNormAvg + 0.35 * actionNormFinal;
+  const service_norm = Math.min(serviceNormRaw, 1);
 
   return {
     service_norm,
-    service_contrib: service_norm * 10,
+    service_contrib: service_norm * 5,
     service_band: bandForNorm(service_norm),
   };
-}
-
-function calcEntryNorm(entry: ServiceEntryRecord): number {
-  const leadershipBonus = entry.is_leadership ? 0.12 : 0;
-  const durationBonus = entry.duration_months == null
-    ? 0
-    : Math.min(entry.duration_months / 24, 1) * 0.08;
-
-  return Math.min(
-    HOURS_NORM[entry.total_hours_range] +
-      ACTION_BONUS[entry.action_type] +
-      leadershipBonus +
-      durationBonus,
-    1,
-  );
 }
 
 function bandForNorm(norm: number): ReadinessBand {
   if (norm >= 0.90) return "exceptional";
   if (norm >= 0.75) return "strongly_competitive";
   if (norm >= 0.60) return "competitive";
-  if (norm >= 0.35) return "developing";
+  if (norm >= 0.45) return "developing";
   return "foundational";
 }

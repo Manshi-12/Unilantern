@@ -65,19 +65,49 @@ export class ScoringOrchestrator {
     const academicsBand = bandForRatio(academicsScores.academics_contrib / 50);
     const essayBand = bandForRatio(essayScores.essay_contrib / 15);
     const awardsBand = bandForRatio(awardsScores.awards_contrib / 5);
-    const readinessBand = bandForScore(totalScore);
+    let readinessBand = bandForScore(totalScore);
     const limiter = pickPrimaryLimiter([
       ["academics", academicsScores.academics_contrib / 50],
-      ["extracurriculars", ecScores.ec_contrib / 20],
+      ["extracurriculars", ecScores.ec_contrib / 25],
       ["essay", essayScores.essay_contrib / 15],
       ["awards", awardsScores.awards_contrib / 5],
-      ["service", serviceScores.service_contrib / 10],
+      ["service", serviceScores.service_contrib / 5],
     ]);
     const trendDirection = getTrendDirection(previous?.total_score ?? null, totalScore);
+    
+    // Apply exceptional gate: require ALL categories >= Strongly Competitive + at least one standout
+    const hasReviewedEssay = essay?.essay_status ? ["revised", "submitted", "accepted"].includes(essay.essay_status) : false;
+    const hasStandoutAwards = awardsScores.awards_norm >= 0.70;
+    const hasStandoutAcademics = academicsScores.academics_contrib >= 40;
+    const hasStandoutEc = ecScores.ec_norm >= 0.75;
+    
     const exceptionalGateMet =
       totalScore >= 90 &&
-      academicsBand !== "foundational" &&
-      ecScores.ec_band !== "foundational";
+      (academicsBand === "strongly_competitive" || academicsBand === "exceptional") &&
+      (ecScores.ec_band === "strongly_competitive" || ecScores.ec_band === "exceptional") &&
+      (essayBand === "strongly_competitive" || essayBand === "exceptional") &&
+      hasReviewedEssay &&
+      (hasStandoutAwards || hasStandoutAcademics || hasStandoutEc);
+    
+    // Apply floor rules: downgrade if constraints aren't met
+    let finalBand = readinessBand;
+    let foundational_floor_applied = false;
+    let developing_floor_applied = false;
+    
+    if (applyFoundationalFloor([academicsBand, ecScores.ec_band, essayBand, awardsBand, serviceScores.service_band])) {
+      finalBand = "developing";
+      foundational_floor_applied = true;
+    } else if (applyDevelopingFloor([academicsBand, ecScores.ec_band, essayBand, awardsBand, serviceScores.service_band])) {
+      if (finalBand === "strongly_competitive" || finalBand === "exceptional") {
+        finalBand = "competitive";
+      }
+      developing_floor_applied = true;
+    }
+    
+    // Override exceptional to strongly_competitive if gate not met
+    if (finalBand === "exceptional" && !exceptionalGateMet) {
+      finalBand = "strongly_competitive";
+    }
 
     await this.upsertScores(studentId, {
       ...academicsScores,
@@ -86,15 +116,15 @@ export class ScoringOrchestrator {
       ...awardsScores,
       ...serviceScores,
       total_score: totalScore,
-      readiness_band: readinessBand,
-      on_track_status: getOnTrackStatus(grade, readinessBand),
+      readiness_band: finalBand,
+      on_track_status: getOnTrackStatus(grade, finalBand),
       academics_band: academicsBand,
       essay_band: essayBand,
       awards_band: awardsBand,
       primary_limiter: limiter,
       exceptional_gate_met: exceptionalGateMet,
-      foundational_floor_applied: false,
-      developing_floor_applied: false,
+      foundational_floor_applied,
+      developing_floor_applied,
       has_standout_awards: awardsScores.awards_norm >= 0.70,
       has_academic_strength: academicsScores.academics_contrib >= 40,
     });
@@ -102,7 +132,7 @@ export class ScoringOrchestrator {
     if (grade !== null) {
       await this.insertHistory(studentId, grade, {
         total_score: totalScore,
-        readiness_band: readinessBand,
+        readiness_band: finalBand,
         academics_band: academicsBand,
         ec_band: ecScores.ec_band,
         essay_band: essayBand,
@@ -422,7 +452,7 @@ function bandForRatio(ratio: number): ReadinessBand {
   if (ratio >= 0.90) return "exceptional";
   if (ratio >= 0.75) return "strongly_competitive";
   if (ratio >= 0.60) return "competitive";
-  if (ratio >= 0.35) return "developing";
+  if (ratio >= 0.45) return "developing";
   return "foundational";
 }
 
@@ -430,8 +460,19 @@ function bandForScore(score: number): ReadinessBand {
   if (score >= 90) return "exceptional";
   if (score >= 75) return "strongly_competitive";
   if (score >= 60) return "competitive";
-  if (score >= 35) return "developing";
+  if (score >= 45) return "developing";
   return "foundational";
+}
+
+function applyFoundationalFloor(bands: ReadinessBand[]): boolean {
+  // If ANY category is foundational, cap overall at developing
+  return bands.some((b) => b === "foundational");
+}
+
+function applyDevelopingFloor(bands: ReadinessBand[]): boolean {
+  // If TWO OR MORE categories are developing or below, cap overall at competitive
+  const lowCount = bands.filter((b) => b === "foundational" || b === "developing").length;
+  return lowCount >= 2;
 }
 
 function pickPrimaryLimiter(categories: Array<[string, number]>): string {

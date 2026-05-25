@@ -131,9 +131,9 @@ export class StudentRepository {
         .input("state_of_residence", sql.VarChar(100), data.state_of_residence)
         .query(
           `INSERT INTO ${STUDENT_PROFILES_TABLE}
-            (student_id, grade, graduation_year, date_of_birth, high_school_name, state_of_residence)
+            (student_id, grade, graduation_year, date_of_birth, high_school_name, state_of_residence, onboarding_step, previous_school_ids)
            VALUES
-            (@student_id, @grade, @graduation_year, @date_of_birth, @high_school_name, @state_of_residence);`,
+            (@student_id, @grade, @graduation_year, @date_of_birth, @high_school_name, @state_of_residence, 1, '[]');`,
         );
 
       const consents: { type: string; status: string }[] = [];

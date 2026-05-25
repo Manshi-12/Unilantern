@@ -7,20 +7,49 @@ export interface RateLimiterOptions {
   identifier?: IdentifierSource;
 }
 
-interface RateEntry {
+export const RATE_LIMITER_STORAGE_MODE = "memory";
+
+interface RateLimitEntry {
   count: number;
   expiresAt: number;
 }
 
-export const RATE_LIMITER_STORAGE_MODE = "memory";
+const rateLimitStore = new Map<string, RateLimitEntry>();
 
-if (process.env.NODE_ENV === "production") {
-  console.warn(
-    "[rate-limiter] Using in-memory counters. Run a single Node process only, or replace this with a shared persistent store before production traffic.",
-  );
+// Cleanup expired entries every minute
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitStore.entries()) {
+    if (entry.expiresAt < now) {
+      rateLimitStore.delete(key);
+    }
+  }
+}, 60000);
+
+/**
+ * In-memory rate limit check + increment.
+ * Returns: [count, ttlSeconds] where count is the new count and ttlSeconds is the remaining TTL
+ */
+function checkAndIncrementRateLimit(
+  key: string,
+  limit: number,
+  windowSeconds: number,
+): [count: number, ttlSeconds: number] {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+
+  if (!entry || entry.expiresAt < now) {
+    // New or expired entry
+    const expiresAt = now + windowSeconds * 1000;
+    rateLimitStore.set(key, { count: 1, expiresAt });
+    return [1, windowSeconds];
+  }
+
+  // Existing valid entry
+  entry.count += 1;
+  const ttlSeconds = Math.ceil((entry.expiresAt - now) / 1000);
+  return [entry.count, ttlSeconds];
 }
-
-const store = new Map<string, RateEntry>();
 
 export function rateLimiter(
   action: string,
@@ -39,32 +68,20 @@ export function rateLimiter(
       }
 
       const key = `rate:${action}:${identifier}`;
-      const now = Date.now();
-      const entry = store.get(key);
 
-      let count: number;
-      let expiresAt: number;
-
-      if (!entry || now >= entry.expiresAt) {
-        count = 1;
-        expiresAt = now + windowSeconds * 1000;
-        store.set(key, { count, expiresAt });
-      } else {
-        entry.count += 1;
-        count = entry.count;
-        expiresAt = entry.expiresAt;
-      }
+      // Check and increment rate limit
+      const [count, ttl] = checkAndIncrementRateLimit(key, limit, windowSeconds);
 
       const remaining = Math.max(0, limit - count);
       res.setHeader("X-RateLimit-Limit", String(limit));
       res.setHeader("X-RateLimit-Remaining", String(remaining));
 
       if (count > limit) {
-        const ttl = Math.ceil((expiresAt - now) / 1000);
-        if (ttl > 0) res.setHeader("Retry-After", String(ttl));
+        const retryAfter = Math.ceil(ttl);
+        if (retryAfter > 0) res.setHeader("Retry-After", String(retryAfter));
         throw new RateLimitError(
           `Rate limit exceeded for ${action}`,
-          ttl > 0 ? ttl : undefined,
+          retryAfter > 0 ? retryAfter : undefined,
         );
       }
 
@@ -101,9 +118,14 @@ function resolveIdentifier(req: Request, source: IdentifierSource): string | nul
       return null;
     }
   }
+  // Default: use IP address (handle X-Forwarded-For)
+  const forwarded = req.headers["x-forwarded-for"];
+  if (forwarded && typeof forwarded === "string") {
+    return forwarded.split(",")[0].trim();
+  }
   return req.ip ?? req.socket.remoteAddress ?? null;
 }
 
-function resLocals(req: Request): Record<string, unknown> {
-  return (req as Request & { res?: Response }).res?.locals ?? {};
+function resLocals(req: Request): unknown {
+  return (req as any).locals ?? req.app.locals ?? {};
 }

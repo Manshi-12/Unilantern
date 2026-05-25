@@ -544,7 +544,7 @@ CREATE TABLE student_profiles (
 
     -- ── Onboarding progress ───────────────────────────────────────────────────
     profile_complete        BIT                 NOT NULL    DEFAULT 0,
-    onboarding_step         SMALLINT            NOT NULL    DEFAULT 0,
+    onboarding_step         SMALLINT            NOT NULL    DEFAULT 1,
 
     -- ── Transfer history ──────────────────────────────────────────────────────
     -- Stored as JSON array string, e.g. '[1,2,3]' (replaces PostgreSQL INT[])
