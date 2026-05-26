@@ -1,13 +1,11 @@
-import { createRequire } from "node:module";
-import type { Redis as RedisType } from "ioredis";
+import { Redis } from "ioredis";
 import { env } from "../../config/env.js";
 
-const require = createRequire(import.meta.url);
-const Redis = require("ioredis") as new (...args: any[]) => RedisType;
+type RedisClient = Redis;
 
-let client: RedisType | null = null;
+let client: RedisClient | null = null;
 
-export function getRedis(): RedisType {
+export function getRedis(): RedisClient {
   if (!client) {
     if (!env.REDIS_URL) {
       throw new Error("REDIS_URL is required to initialise Redis");

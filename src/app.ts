@@ -1,4 +1,6 @@
 import cors from "cors";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
 import express, {
   type NextFunction,
   type Request,
@@ -6,18 +8,30 @@ import express, {
 } from "express";
 import { ZodError } from "zod";
 
-// Middlewares
+// ── Shared Middleware ─────────────────────────────────────────────────────────
 import { requestId } from "./shared/middleware/request-id.js";
 import { requestLogger } from "./shared/middleware/logger.js";
+import { authenticateAdvisor } from "./shared/middleware/authenticate.js";
+import { auditLogger as globalAuditLogger } from "./shared/middleware/audit-logger.js";
+
+// ── Error Classes ─────────────────────────────────────────────────────────────
 import { AppError } from "./shared/errors/app-error.js";
 import { AuthError } from "./shared/errors/auth-error.js";
 import { ConflictError } from "./shared/errors/conflict-error.js";
 import { RateLimitError } from "./shared/errors/rate-limit-error.js";
+
+// ── Response Helpers ──────────────────────────────────────────────────────────
 import { sendError } from "./shared/response/error.js";
 import { logger } from "./shared/utils/logger.js";
 
-// Routers
+// ─────────────────────────────────────────────────────────────────────────────
+// STUDENT ROUTERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Auth
 import studentAuthRouter from "./modules/auth/student/student.routes.js";
+
+// Core student module routes
 import studentProfileRouter from "./modules/student/student_profile/students.routes.js";
 import studentExtracurricularRouter from "./modules/student/extracurriculars/extracurriculars.routes.js";
 import serviceRouter from "./modules/student/service/service.routes.js";
@@ -27,7 +41,7 @@ import settingsRouter from "./modules/student/settings/settings.routes.js";
 import schoolLinkingRouter from "./modules/student/school-linking/school-linking.routes.js";
 import analyticsRouter from "./modules/student/analytics/analytics.routes.js";
 
-// Migrated Routers from DV
+// Migrated student feature routes
 import academicsRouter from "./modules/student/academics/academics.routes.js";
 import awardsRouter from "./modules/student/awards/awards.routes.js";
 import collegesRouter from "./modules/student/colleges/colleges.routes.js";
@@ -39,18 +53,51 @@ import pushTokensRouter from "./modules/student/push-tokens/push-tokens.routes.j
 import essayRouter from "./modules/student/essay/essay.routes.js";
 import readinessRouter from "./modules/student/readiness/readiness.routes.js";
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ADVISOR ROUTERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Auth (public — no authenticateAdvisor here, this IS the login endpoint)
+import advisorAuthRoutes from "./modules/auth/advisor/advisor-auth.routes.js";
+
+// Protected advisor module routes
+import rosterRoutes from "./modules/advisor/roster/roster.routes.js";
+import studentDetailRoutes from "./modules/advisor/student-detail/student-detail.routes.js";
+import advisorReadinessRoutes from "./modules/advisor/readiness/readiness.routes.js";
+import consentRoutes from "./modules/advisor/consent/consent.routes.js";
+import advisorCollegesRoutes from "./modules/advisor/colleges/colleges.routes.js";
+import advisorScholarshipsRoutes from "./modules/advisor/scholarships/scholarships.routes.js";
+import tasksRoutes from "./modules/advisor/tasks/tasks.routes.js";
+import notesRoutes from "./modules/advisor/notes/notes.routes.js";
+import advisorNotificationsRoutes from "./modules/advisor/notifications/notifications.routes.js";
+import feedbackRoutes from "./modules/advisor/feedback/feedback.routes.js";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// APP SETUP
+// ─────────────────────────────────────────────────────────────────────────────
+
 const app = express();
 
+// ── Global Middleware ─────────────────────────────────────────────────────────
 app.use(cors());
 app.use(requestId);
 app.use(requestLogger);
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
+app.use(helmet());       // Security headers — safe for both student and advisor
+app.use(cookieParser()); // Required by advisor cookie-based auth; harmless for student
 
-// ── Auth Routes ──────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// STUDENT ROUTES
+//
+// Authentication is handled INSIDE each router using verifyJWT from auth.ts.
+// No top-level auth middleware needed here.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Student auth (OTP / phone-based login — public endpoints)
 app.use("/api/v1/auth/student", studentAuthRouter);
 
-// ── Student Profile & Core ───────────────────────────────────────────────────
+// Core student routes
 app.use("/api/v1", studentProfileRouter);
 app.use("/api/v1", studentExtracurricularRouter);
 app.use("/api/v1", serviceRouter);
@@ -60,7 +107,7 @@ app.use("/api/v1", settingsRouter);
 app.use("/api/v1", schoolLinkingRouter);
 app.use("/api/v1", analyticsRouter);
 
-// ── Migrated Student Features (DV) ───────────────────────────────────────────
+// Migrated student feature routes
 app.use("/api/v1/students/me/academics", academicsRouter);
 app.use("/api/v1/students/me/awards", awardsRouter);
 app.use("/api/v1/students/me/essay", essayRouter);
@@ -72,10 +119,35 @@ app.use("/api/v1/students/me/notifications", notificationsRouter);
 app.use("/api/v1/students/me/push-token", pushTokensRouter);
 app.use("/api/v1/students/me/readiness", readinessRouter);
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ADVISOR ROUTES
+//
+// The auth endpoint is public (email + password login).
+// Every other advisor route is protected by authenticateAdvisor which reads
+// the HttpOnly access-token cookie and sets res.locals.advisorId / role / schoolId.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Advisor auth (email + password login — public endpoint)
+app.use("/api/v1/auth/advisor", advisorAuthRoutes);
+
+// Protected advisor routes — authenticateAdvisor applied here at the app level
+app.use("/api/v1/advisor/roster",         authenticateAdvisor, rosterRoutes);
+app.use("/api/v1/advisor/students",       authenticateAdvisor, studentDetailRoutes);
+app.use("/api/v1/advisor/readiness",      authenticateAdvisor, advisorReadinessRoutes);
+app.use("/api/v1/advisor/consent",        authenticateAdvisor, consentRoutes);
+app.use("/api/v1/advisor/colleges",       authenticateAdvisor, advisorCollegesRoutes);
+app.use("/api/v1/advisor/scholarships",   authenticateAdvisor, advisorScholarshipsRoutes);
+app.use("/api/v1/advisor/notes",          authenticateAdvisor, notesRoutes);
+app.use("/api/v1/advisor/tasks",          authenticateAdvisor, tasksRoutes);
+app.use("/api/v1/advisor/notifications",  authenticateAdvisor, advisorNotificationsRoutes);
+app.use("/api/v1/advisor/feedback",       authenticateAdvisor, feedbackRoutes);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROOT / HEALTH ROUTES
+// ─────────────────────────────────────────────────────────────────────────────
+
 app.get("/", (_req: Request, res: Response) => {
-  res.status(200).json({
-    message: "Welcome to UniLantern",
-  });
+  res.status(200).json({ message: "Welcome to UniLantern" });
 });
 
 app.get("/health", (_req: Request, res: Response) => {
@@ -86,16 +158,35 @@ app.get("/health", (_req: Request, res: Response) => {
   });
 });
 
-// 404 Handler
+// ─────────────────────────────────────────────────────────────────────────────
+// GLOBAL AUDIT LOGGER
+// Runs after all route handlers. Logs completed requests for the advisor module.
+// (Student routes do per-action audit logging inside auth.ts via auditLogger().)
+// ─────────────────────────────────────────────────────────────────────────────
+
+app.use(globalAuditLogger);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 404 HANDLER
+// ─────────────────────────────────────────────────────────────────────────────
+
 app.use((_req: Request, res: Response) => {
   sendError(res, "NOT_FOUND", "Route not found", 404);
 });
 
-// Global Error Handler
+// ─────────────────────────────────────────────────────────────────────────────
+// GLOBAL ERROR HANDLER
+//
+// Order matters — more specific error classes checked first.
+// Uses the student module's structured logger (Winston / Pino) for consistent
+// log output across both modules.
+// ─────────────────────────────────────────────────────────────────────────────
+
 app.use((error: Error, req: Request, res: Response, _next: NextFunction) => {
   const ts = new Date().toISOString();
-  const requestId = (req as any).id || "unknown";
+  const reqId = (req as any).id || "unknown";
 
+  // Zod validation errors
   if (error instanceof ZodError) {
     const fields = error.issues.reduce<Record<string, string[]>>((acc, e) => {
       const field = e.path.length > 0 ? e.path.join(".") : "_";
@@ -103,7 +194,7 @@ app.use((error: Error, req: Request, res: Response, _next: NextFunction) => {
       return acc;
     }, {});
     logger.error("VALIDATION_ERROR", error, {
-      requestId,
+      requestId: reqId,
       method: req.method,
       path: req.path,
       statusCode: 422,
@@ -111,9 +202,10 @@ app.use((error: Error, req: Request, res: Response, _next: NextFunction) => {
     return sendError(res, "VALIDATION_ERROR", "Invalid input", 422, fields);
   }
 
+  // Auth errors (JWT, session, permissions)
   if (error instanceof AuthError) {
     logger.error(`${error.code}`, error, {
-      requestId,
+      requestId: reqId,
       method: req.method,
       path: req.path,
       statusCode: error.statusCode,
@@ -121,9 +213,10 @@ app.use((error: Error, req: Request, res: Response, _next: NextFunction) => {
     return sendError(res, error.code, error.message, error.statusCode);
   }
 
+  // Conflict errors (duplicate resource, etc.)
   if (error instanceof ConflictError) {
     logger.error(`${error.code}`, error, {
-      requestId,
+      requestId: reqId,
       method: req.method,
       path: req.path,
       statusCode: 409,
@@ -131,9 +224,10 @@ app.use((error: Error, req: Request, res: Response, _next: NextFunction) => {
     return sendError(res, error.code, error.message, 409, error.details);
   }
 
+  // Rate limit errors
   if (error instanceof RateLimitError) {
-    logger.warning(`RATE_LIMIT_EXCEEDED`, {
-      requestId,
+    logger.warning("RATE_LIMIT_EXCEEDED", {
+      requestId: reqId,
       method: req.method,
       path: req.path,
       statusCode: 429,
@@ -141,9 +235,10 @@ app.use((error: Error, req: Request, res: Response, _next: NextFunction) => {
     return sendError(res, "RATE_LIMIT_EXCEEDED", error.message, 429);
   }
 
+  // Generic AppError subclasses (NotFoundError, BadRequestError, etc.)
   if (error instanceof AppError) {
     logger.error(`${error.code}`, error, {
-      requestId,
+      requestId: reqId,
       method: req.method,
       path: req.path,
       statusCode: error.statusCode,
@@ -151,8 +246,9 @@ app.use((error: Error, req: Request, res: Response, _next: NextFunction) => {
     return sendError(res, error.code, error.message, error.statusCode, error.details);
   }
 
+  // Unhandled errors
   logger.error("INTERNAL_SERVER_ERROR", error, {
-    requestId,
+    requestId: reqId,
     method: req.method,
     path: req.path,
     statusCode: 500,

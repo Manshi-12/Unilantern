@@ -11,6 +11,9 @@ const envSchema = z.object({
   JWT_ACCESS_TTL: z.string().default("15m"),
 
   OTP_TTL_SECONDS: z.coerce.number().default(300),
+
+  BCRYPT_ROUNDS: z.coerce.number().default(10),
+
   REDIS_URL: z.string().optional().default(""),
   DOB_ENCRYPTION_KEY: z.string().optional().default(""),
 });

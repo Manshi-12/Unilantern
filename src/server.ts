@@ -1,15 +1,20 @@
 import "dotenv/config";
 
 import app from "./app.js";
+import { env } from "./config/env.js";
 import { logger } from "./shared/utils/logger.js";
 
-const port = Number(process.env.PORT) || 3000;
-const host = process.env.HOST || "127.0.0.1";
+const port = Number(env.PORT) || 3000;
+const host = env.HOST || "127.0.0.1";
+const nodeEnv = env.NODE_ENV || "development";
 
 const server = app.listen(port, host, () => {
   logger.success(`Server is running`, {
     path: `http://${host}:${port}`,
   });
+  logger.info(`Environment: ${nodeEnv}`);
+  logger.info(`Modules: advisor, student`);
+  logger.info(`Advisor API: http://${host}:${port}/api/v1/auth/advisor`);
 });
 
 const shutdown = (signal: string) => {

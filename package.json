@@ -16,10 +16,12 @@
   "type": "module",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
+    "helmet": "^8.2.0",
     "ioredis": "^5.4.1",
     "jose": "^5.9.6",
     "msnodesqlv8": "^5.1.9",
@@ -30,6 +32,7 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/mssql": "^9.1.5",

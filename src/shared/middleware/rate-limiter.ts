@@ -27,9 +27,9 @@ setInterval(() => {
 }, 60000);
 
 /**
- * In-memory rate limit check + increment.
- * Returns: [count, ttlSeconds] where count is the new count and ttlSeconds is the remaining TTL
- */
+* In-memory rate limit check + increment.
+* Returns: [count, ttlSeconds] where count is the new count and ttlSeconds is the remaining TTL
+*/
 function checkAndIncrementRateLimit(
   key: string,
   limit: number,
@@ -39,13 +39,11 @@ function checkAndIncrementRateLimit(
   const entry = rateLimitStore.get(key);
 
   if (!entry || entry.expiresAt < now) {
-    // New or expired entry
     const expiresAt = now + windowSeconds * 1000;
     rateLimitStore.set(key, { count: 1, expiresAt });
     return [1, windowSeconds];
   }
 
-  // Existing valid entry
   entry.count += 1;
   const ttlSeconds = Math.ceil((entry.expiresAt - now) / 1000);
   return [entry.count, ttlSeconds];
@@ -69,7 +67,6 @@ export function rateLimiter(
 
       const key = `rate:${action}:${identifier}`;
 
-      // Check and increment rate limit
       const [count, ttl] = checkAndIncrementRateLimit(key, limit, windowSeconds);
 
       const remaining = Math.max(0, limit - count);
@@ -100,6 +97,7 @@ function resolveIdentifier(req: Request, source: IdentifierSource): string | nul
     }
     return null;
   }
+
   if (source === "user") {
     const user = (resLocals(req) as { user?: { user_id?: unknown; student_id?: unknown } }).user;
     if (typeof user?.user_id === "string") return user.user_id;
@@ -112,13 +110,18 @@ function resolveIdentifier(req: Request, source: IdentifierSource): string | nul
     if (tokenParts.length < 2) return null;
 
     try {
-      const payload = JSON.parse(Buffer.from(tokenParts[1], "base64url").toString("utf8")) as { sub?: unknown };
-      return typeof payload.sub === "string" && payload.sub.length > 0 ? payload.sub : null;
+      const payload = JSON.parse(
+        Buffer.from(tokenParts[1], "base64url").toString("utf8"),
+      ) as { sub?: unknown };
+      return typeof payload.sub === "string" && payload.sub.length > 0
+        ? payload.sub
+        : null;
     } catch {
       return null;
     }
   }
-  // Default: use IP address (handle X-Forwarded-For)
+
+  // Default: ip — handle X-Forwarded-For
   const forwarded = req.headers["x-forwarded-for"];
   if (forwarded && typeof forwarded === "string") {
     return forwarded.split(",")[0].trim();

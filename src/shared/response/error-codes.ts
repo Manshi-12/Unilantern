@@ -1,36 +1,49 @@
 export const AuthErrorCode = {
-  OTP_INVALID: "OTP_INVALID",
-  OTP_EXPIRED: "OTP_EXPIRED",
+
+  // ── OTP ─────────────────────────────────────────────────────────────────
+  OTP_INVALID:           "OTP_INVALID",
+  OTP_EXPIRED:           "OTP_EXPIRED",
   OTP_TOO_MANY_ATTEMPTS: "OTP_TOO_MANY_ATTEMPTS",
 
+  // ── Phone / Email ────────────────────────────────────────────────────────
   PHONE_ALREADY_REGISTERED: "PHONE_ALREADY_REGISTERED",
-  PHONE_UNAVAILABLE: "PHONE_UNAVAILABLE",
-  EMAIL_ALREADY_REGISTERED: "EMAIL_ALREADY_REGISTERED",
-  PHONE_NOT_FOUND: "PHONE_NOT_FOUND",
-  PHONE_NOT_VERIFIED: "PHONE_NOT_VERIFIED",
+  PHONE_UNAVAILABLE:         "PHONE_UNAVAILABLE",
+  EMAIL_ALREADY_REGISTERED:  "EMAIL_ALREADY_REGISTERED",
+  PHONE_NOT_FOUND:           "PHONE_NOT_FOUND",
+  PHONE_NOT_VERIFIED:        "PHONE_NOT_VERIFIED",
 
+  // ── Age & Consent (Signup) ───────────────────────────────────────────────
   AGE_CONFIRMATION_REQUIRED: "AGE_CONFIRMATION_REQUIRED",
-  AGE_GATE_FAILED: "AGE_GATE_FAILED",
+  AGE_GATE_FAILED:           "AGE_GATE_FAILED",
   PARENTAL_CONSENT_REQUIRED: "PARENTAL_CONSENT_REQUIRED",
 
+  // ── Invite Token ─────────────────────────────────────────────────────────
   INVITE_TOKEN_INVALID: "INVITE_TOKEN_INVALID",
   INVITE_TOKEN_EXPIRED: "INVITE_TOKEN_EXPIRED",
   INVITE_TOKEN_USED_UP: "INVITE_TOKEN_USED_UP",
 
+  // ── Account ──────────────────────────────────────────────────────────────
   ACCOUNT_INACTIVE: "ACCOUNT_INACTIVE",
-  ACCOUNT_DELETED: "ACCOUNT_DELETED",
+  ACCOUNT_DELETED:  "ACCOUNT_DELETED",
 
-  JWT_INVALID: "JWT_INVALID",
-  JWT_EXPIRED: "JWT_EXPIRED",
-  TOKEN_INVALID: "TOKEN_INVALID",
+  // ── JWT / Token ──────────────────────────────────────────────────────────
+  JWT_INVALID:    "JWT_INVALID",
+  JWT_EXPIRED:    "JWT_EXPIRED",
+  TOKEN_INVALID:  "TOKEN_INVALID",
 
+  // ── Rate Limiting & Validation ───────────────────────────────────────────
   TOO_MANY_REQUESTS: "TOO_MANY_REQUESTS",
-  VALIDATION_ERROR: "VALIDATION_ERROR",
-  INTERNAL_ERROR: "INTERNAL_ERROR",
+  VALIDATION_ERROR:  "VALIDATION_ERROR",
+  INTERNAL_ERROR:    "INTERNAL_ERROR",
 
-  SESSION_INVALID: "SESSION_INVALID",
-  SESSION_EXPIRED: "SESSION_EXPIRED",
+  // ── Session ──────────────────────────────────────────────────────────────
+  SESSION_INVALID:   "SESSION_INVALID",
+  SESSION_EXPIRED:   "SESSION_EXPIRED",
   SESSION_NOT_FOUND: "SESSION_NOT_FOUND",
+
+  // ── General ──────────────────────────────────────────────────────────────
+  FORBIDDEN: "FORBIDDEN",
+  NOT_FOUND: "NOT_FOUND",
 
   // ── Academics ───────────────────────────────────────────────────────────
   ACADEMIC_NOT_FOUND: "ACADEMIC_NOT_FOUND",
@@ -46,12 +59,12 @@ export const AuthErrorCode = {
   SERVICE_LIMIT_REACHED: "SERVICE_LIMIT_REACHED",
 
   // ── Essays ──────────────────────────────────────────────────────────────
-  ESSAY_NOT_AVAILABLE:       "ESSAY_NOT_AVAILABLE",
-  ESSAY_PREREQ_NOT_MET:      "ESSAY_PREREQ_NOT_MET",
-  ESSAY_STATUS_INVALID:      "ESSAY_STATUS_INVALID",
-  ESSAY_REFLECTION_LOCKED:   "ESSAY_REFLECTION_LOCKED",
-  ESSAY_ALREADY_FINALIZED:   "ESSAY_ALREADY_FINALIZED",
-  ESSAY_CONFIRMATION_REQUIRED: "ESSAY_CONFIRMATION_REQUIRED",
+  ESSAY_NOT_AVAILABLE:          "ESSAY_NOT_AVAILABLE",
+  ESSAY_PREREQ_NOT_MET:         "ESSAY_PREREQ_NOT_MET",
+  ESSAY_STATUS_INVALID:         "ESSAY_STATUS_INVALID",
+  ESSAY_REFLECTION_LOCKED:      "ESSAY_REFLECTION_LOCKED",
+  ESSAY_ALREADY_FINALIZED:      "ESSAY_ALREADY_FINALIZED",
+  ESSAY_CONFIRMATION_REQUIRED:  "ESSAY_CONFIRMATION_REQUIRED",
 
   // ── Colleges ────────────────────────────────────────────────────────────
   COLLEGE_NOT_FOUND:     "COLLEGE_NOT_FOUND",
@@ -66,9 +79,9 @@ export const AuthErrorCode = {
   REACTIVATION_WINDOW_CLOSED: "REACTIVATION_WINDOW_CLOSED",
 
   // ── Consents ────────────────────────────────────────────────────────────
-  INVALID_CONSENT_TYPE: "INVALID_CONSENT_TYPE",
-  ALREADY_GRANTED:      "ALREADY_GRANTED",
-  ALREADY_REVOKED:      "ALREADY_REVOKED",
+  INVALID_CONSENT_TYPE:  "INVALID_CONSENT_TYPE",
+  ALREADY_GRANTED:       "ALREADY_GRANTED",
+  ALREADY_REVOKED:       "ALREADY_REVOKED",
   CONSENT_NOT_REVOCABLE: "CONSENT_NOT_REVOCABLE",
 
   // ── Feedback & Settings ─────────────────────────────────────────────────
@@ -81,15 +94,13 @@ export const AuthErrorCode = {
   PREFERENCE_UPDATE_FAILED:   "PREFERENCE_UPDATE_FAILED",
 
   // ── Push Tokens ──────────────────────────────────────────────────────────
-  PUSH_TOKEN_NOT_FOUND:       "PUSH_TOKEN_NOT_FOUND",
-  PUSH_TOKEN_ALREADY_EXISTS:  "PUSH_TOKEN_ALREADY_EXISTS",
+  PUSH_TOKEN_NOT_FOUND:      "PUSH_TOKEN_NOT_FOUND",
+  PUSH_TOKEN_ALREADY_EXISTS: "PUSH_TOKEN_ALREADY_EXISTS",
 
   // ── Cron Jobs ────────────────────────────────────────────────────────────
-  JOB_NOT_FOUND:              "JOB_NOT_FOUND",
-  JOB_ALREADY_RUNNING:        "JOB_ALREADY_RUNNING",
+  JOB_NOT_FOUND:       "JOB_NOT_FOUND",
+  JOB_ALREADY_RUNNING: "JOB_ALREADY_RUNNING",
 
-  FORBIDDEN: "FORBIDDEN",
-  NOT_FOUND: "NOT_FOUND",
 } as const;
 
 export type AuthErrorCode = (typeof AuthErrorCode)[keyof typeof AuthErrorCode];
