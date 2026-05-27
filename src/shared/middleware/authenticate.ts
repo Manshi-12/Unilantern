@@ -61,13 +61,23 @@ export async function authenticateAdvisor(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const token = req.cookies?.[COOKIE_ACCESS];
+    const authorization = req.headers.authorization;
 
-    if (!token) {
-      return next(
-        new AuthError("JWT_INVALID", "Authorization token missing"),
-      );
-    }
+if (
+  !authorization ||
+  !authorization.startsWith("Bearer ")
+) {
+  return next(
+    new AuthError(
+      "JWT_INVALID",
+      "Missing or malformed Authorization header",
+    ),
+  );
+}
+
+const token = authorization
+  .slice(7)
+  .trim();
 
     const payload = await verifyAccessToken(token);
 
