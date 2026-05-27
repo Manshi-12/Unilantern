@@ -9,33 +9,31 @@ const repository = new ConsentsRepository();
 const service = new ConsentsService(repository);
 const controller = new ConsentsController(service);
 
-// All routes require student role
-router.use(verifyJWT);
-router.use(requireRole("student"));
+// Middleware will be applied directly to routes to avoid global interference
 
 /**
  * @route GET /api/v1/students/me/consents
  */
-router.get("/students/me/consents", auditLogger("get_all_consents"), controller.getAllConsents);
+router.get("/students/me/consents", verifyJWT, requireRole("student"), auditLogger("get_all_consents"), controller.getAllConsents);
 
 /**
  * @route POST /api/v1/students/me/consents/:consent_type/grant
  */
-router.post("/students/me/consents/:consent_type/grant", auditLogger("grant_consent"), controller.grantConsent);
+router.post("/students/me/consents/:consent_type/grant", verifyJWT, requireRole("student"), auditLogger("grant_consent"), controller.grantConsent);
 
 /**
  * @route POST /api/v1/students/me/consents/:consent_type/revoke
  */
-router.post("/students/me/consents/:consent_type/revoke", auditLogger("revoke_consent"), controller.revokeConsent);
+router.post("/students/me/consents/:consent_type/revoke", verifyJWT, requireRole("student"), auditLogger("revoke_consent"), controller.revokeConsent);
 
 /**
  * @route GET /api/v1/students/me/college-data-sharing
  */
-router.get("/students/me/college-data-sharing", auditLogger("get_college_sharing"), controller.getCollegeDataSharing);
+router.get("/students/me/college-data-sharing", verifyJWT, requireRole("student"), auditLogger("get_college_sharing"), controller.getCollegeDataSharing);
 
 /**
  * @route PUT /api/v1/students/me/college-data-sharing
  */
-router.put("/students/me/college-data-sharing", auditLogger("update_college_sharing"), controller.updateCollegeDataSharing);
+router.put("/students/me/college-data-sharing", verifyJWT, requireRole("student"), auditLogger("update_college_sharing"), controller.updateCollegeDataSharing);
 
 export default router;
