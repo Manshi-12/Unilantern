@@ -1,10 +1,8 @@
 import type { Request, Response, NextFunction, RequestHandler } from "express";
-import { verifyAccessToken } from "../utils/jwt.js";
+import { authenticate } from "./authenticate.js";
 import { AuthError } from "../errors/auth-error.js";
 import { AuthErrorCode } from "../response/error-codes.js";
 import { AuditRepository } from "../repository/audit.repository.js";
-import { sql, getPool } from "../../db/client.js";
-import { STUDENTS_TABLE } from "../../db/schema/students.js";
 
 export interface AuthUser {
   user_id: string;
@@ -13,63 +11,7 @@ export interface AuthUser {
   school_id: number | null;
 }
 
-export async function verifyJWT(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try {
-    const authorization = req.headers.authorization;
-    if (!authorization || !authorization.startsWith("Bearer ")) {
-      throw new AuthError(AuthErrorCode.TOKEN_INVALID, "Missing or malformed Authorization header", 401);
-    }
-
-    const token = authorization.slice(7).trim();
-    if (!token) {
-      throw new AuthError(AuthErrorCode.TOKEN_INVALID, "Missing access token", 401);
-    }
-
-    const payload = await verifyAccessToken(token);
-    const sub = typeof payload.sub === "string" ? payload.sub : undefined;
-    const role = typeof payload.role === "string" ? payload.role : undefined;
-    const school_id = payload.school_id == null ? null : Number(payload.school_id);
-
-    if (!sub || !role || Number.isNaN(Number(sub)) || (school_id !== null && Number.isNaN(school_id))) {
-      throw new AuthError(AuthErrorCode.TOKEN_INVALID, "Malformed access token", 401);
-    }
-
-    const studentId = Number(sub);
-    const pool = await getPool();
-    const result = await pool
-      .request()
-      .input("student_id", sql.Int, studentId)
-      .query<{ student_id: number; is_active: boolean }>(
-        `SELECT TOP 1 student_id, is_active
-           FROM ${STUDENTS_TABLE}
-          WHERE student_id = @student_id;`,
-      );
-
-    const row = result.recordset[0];
-    if (!row || !row.is_active) {
-      throw new AuthError(
-        AuthErrorCode.ACCOUNT_DELETED,
-        "This account has been deleted.",
-        401,
-      );
-    }
-
-    res.locals.user = {
-      user_id: sub,
-      student_id: studentId,
-      role,
-      school_id,
-    };
-    res.locals.userId = sub;
-    res.locals.studentId = studentId;
-    res.locals.role = role;
-    res.locals.schoolId = school_id;
-
-    next();
-  } catch (error) {
-    next(error);
-  }
-}
+export const verifyJWT = authenticate;
 
 export function requireRole(role: string): RequestHandler {
   return (req: Request, res: Response, next: NextFunction): void => {
