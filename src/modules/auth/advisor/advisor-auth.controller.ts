@@ -22,11 +22,6 @@ import {
 }
 from "./advisor-auth.schema.js";
 
-import {
-  COOKIE_ACCESS,
-  COOKIE_REFRESH,
-}
-from "../../../config/constants.js";
 
 export const advisorAuthController = {
 
@@ -127,36 +122,11 @@ export const advisorAuthController = {
             userAgent,
           );
 
-      // access token cookie
-      res.cookie(
-        COOKIE_ACCESS,
-        accessToken,
-        {
-          httpOnly: true,
-          secure: false,
-          sameSite: "lax",
-          path: "/",
-          maxAge:
-            15 * 60 * 1000,
-        },
-      );
-
-      // refresh token cookie
-      res.cookie(
-        COOKIE_REFRESH,
-        refreshToken,
-        {
-          httpOnly: true,
-          secure: false,
-          sameSite: "lax",
-          path: "/",
-          maxAge:
-            7 * 24 * 60 * 60 * 1000,
-        },
-      );
 
       return res.status(200).json({
         data,
+        accessToken,
+        refreshToken,
       });
 
     } catch (err) {
@@ -178,20 +148,13 @@ export const advisorAuthController = {
     try {
 
       const refreshToken =
-        req.cookies[COOKIE_REFRESH];
+  req.body.refreshToken;
 
       await advisorAuthService
         .logoutAdvisor(
           refreshToken || "",
         );
 
-      res.clearCookie(
-        COOKIE_ACCESS,
-      );
-
-      res.clearCookie(
-        COOKIE_REFRESH,
-      );
 
       return res.status(200).json({
         data: {
@@ -218,10 +181,8 @@ export const advisorAuthController = {
 
     try {
 
-      const refreshToken =
-        req.cookies[
-          COOKIE_REFRESH
-        ];
+     const refreshToken =
+  req.body.refreshToken;
 
       if (!refreshToken) {
 
@@ -239,36 +200,11 @@ export const advisorAuthController = {
           .refreshToken(
             refreshToken,
           );
-
-      res.cookie(
-        COOKIE_ACCESS,
-        newAccessToken,
-        {
-          httpOnly: true,
-          secure: false,
-          sameSite: "lax",
-          path: "/",
-          maxAge:
-            15 * 60 * 1000,
-        },
-      );
-
-      res.cookie(
-        COOKIE_REFRESH,
-        newRefreshToken,
-        {
-          httpOnly: true,
-          secure: false,
-          sameSite: "lax",
-          path: "/",
-          maxAge:
-            7 * 24 * 60 * 60 * 1000,
-        },
-      );
-
       return res.status(200).json({
-        data,
-      });
+  data,
+  accessToken: newAccessToken,
+  refreshToken: newRefreshToken,
+});
 
     } catch (err) {
 
@@ -301,15 +237,6 @@ export const advisorAuthController = {
             advisorId,
             parsed,
           );
-
-      // force re-login
-      res.clearCookie(
-        COOKIE_ACCESS,
-      );
-
-      res.clearCookie(
-        COOKIE_REFRESH,
-      );
 
       return res.status(200).json({
         data: result,

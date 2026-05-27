@@ -2,7 +2,7 @@ import { Router } from 'express'
 
 import { advisorAuthController } from './advisor-auth.controller.js'
 
-import { authenticate } from '../../../shared/middleware/authenticate.js'
+import { authenticateAdvisor } from '../../../shared/middleware/authenticate.js'
 
 const router = Router()
 
@@ -27,7 +27,7 @@ router.post(
 // API 4 — Logout advisor (protected)
 router.post(
   '/logout',
-  authenticate,
+  authenticateAdvisor,
   advisorAuthController.logoutAdvisor
 )
 
@@ -38,7 +38,7 @@ router.post(
   
   router.post(
     '/change-password',
-    authenticate,
+    authenticateAdvisor,
     advisorAuthController.changePassword
   )
 
