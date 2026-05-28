@@ -8,13 +8,13 @@ const router = Router()
 
 // API 34
 router.get(
-  '/:id/scholarships/flagged',
+  '/student/:id/flagged',
   advisorScholarshipsController.getFlaggedScholarships,
 )
 
 // API 35
 router.post(
-  '/:id/scholarships/:scholarshipId/flag',
+  '/student/:id/:scholarshipId/flag',
   advisorScholarshipsController.toggleFlag,
 )
 

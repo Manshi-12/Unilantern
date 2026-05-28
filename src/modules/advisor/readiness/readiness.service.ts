@@ -1,5 +1,6 @@
 import {
   NotFoundError,
+  ForbiddenError,
 }
 from '../../../shared/errors/app-error.js'
 
@@ -208,76 +209,89 @@ export const readinessService = {
   // API 19 — School Distribution
   // =====================================
 
-  getSchoolDistribution: async (
+ getSchoolDistribution: async (
 
-    schoolId: number,
+  schoolId: number,
 
-    advisorSchoolId: number,
+  advisorSchoolId: number,
 
-  ): Promise<
-    SchoolDistributionResponseDto
-  > => {
+): Promise<
+  SchoolDistributionResponseDto
+> => {
 
-    if (
-      schoolId !== advisorSchoolId
-    ) {
-
-      throw new NotFoundError(
-        'School not found',
-      )
-    }
-
-    const rawDistribution =
-      await readinessRepository
-        .findDistributionBySchoolId(
-          schoolId,
-        )
-
-    const totalStudents =
-      rawDistribution.reduce(
-
-        (
-          sum,
-          row,
-        ) => sum + row.count,
-
-        0,
-      )
-
-    const distribution =
-      rawDistribution.map(
-        (row) => ({
-
-          band:
-            row.band,
-
-          count:
-            row.count,
-
-          percentage:
-
-            totalStudents > 0
-
-              ? Math.round(
-                  (
-                    row.count
-                    / totalStudents
-                  ) * 1000,
-                ) / 10
-
-              : 0,
-        }),
-      )
-
-    return {
-
-      school_id:
+  const schoolExists =
+    await readinessRepository
+      .checkSchoolExists(
         schoolId,
+      )
 
-      total_students:
-        totalStudents,
+  if (!schoolExists) {
 
-      distribution,
-    }
-  },
+    throw new NotFoundError(
+      'School not found',
+    )
+  }
+
+  if (
+    schoolId !== advisorSchoolId
+  ) {
+
+    throw new ForbiddenError(
+      'You do not have access to this school',
+    )
+  }
+
+  const rawDistribution =
+    await readinessRepository
+      .findDistributionBySchoolId(
+        schoolId,
+      )
+
+  const totalStudents =
+    rawDistribution.reduce(
+
+      (
+        sum,
+        row,
+      ) => sum + row.count,
+
+      0,
+    )
+
+  const distribution =
+    rawDistribution.map(
+      (row) => ({
+
+        band:
+          row.band,
+
+        count:
+          row.count,
+
+        percentage:
+
+          totalStudents > 0
+
+            ? Math.round(
+                (
+                  row.count
+                  / totalStudents
+                ) * 1000,
+              ) / 10
+
+            : 0,
+      }),
+    )
+
+  return {
+
+    school_id:
+      schoolId,
+
+    total_students:
+      totalStudents,
+
+    distribution,
+  }
+},
 }
