@@ -42,7 +42,7 @@ export const readinessRepository = {
 
           FROM students
 
-          WHERE user_id =
+          WHERE student_id =
             @studentId
         `)
 
@@ -56,54 +56,75 @@ export const readinessRepository = {
   // API 17
   // =====================================
 
-  findCurrentByStudentId: async (
+ findCurrentByStudentId: async (
 
-    studentId: number,
+  studentId: number,
 
-  ): Promise<
-    ReadinessCurrent | null
-  > => {
+): Promise<
+  ReadinessCurrent | null
+> => {
 
-    const pool =
-      await getPool()
+  const pool =
+    await getPool()
 
-    const result =
-      await pool.request()
+  const result =
+    await pool.request()
 
-        .input(
-          'studentId',
-          sql.Int,
-          studentId,
-        )
+      .input(
+        'studentId',
+        sql.Int,
+        studentId,
+      )
 
-        .query(`
+      .query(`
+        SELECT
+
+          ss.student_id,
+          ss.readiness_band,
+          ss.on_track_status,
+
+          sh.trend_direction,
+
+          ss.primary_limiter,
+
+          ss.academics_band,
+          ss.ec_band,
+          ss.essay_band,
+          ss.awards_band,
+          ss.service_band,
+
+          ss.updated_at AS calculated_at
+
+        FROM student_scores ss
+
+        LEFT JOIN (
+
           SELECT
-
             student_id,
-            readiness_band,
-            on_track_status,
             trend_direction,
-            primary_limiter,
 
-            academics_band,
-            ec_band,
-            essay_band,
-            awards_band,
-            service_band,
+            ROW_NUMBER() OVER (
+              PARTITION BY student_id
+              ORDER BY snapshot_at DESC
+            ) AS rn
 
-            calculated_at
+          FROM student_score_history
 
-          FROM student_scores
+        ) sh
+          ON sh.student_id =
+            ss.student_id
 
-          WHERE student_id =
-            @studentId
-        `)
+         AND sh.rn = 1
 
-    return (
-      result.recordset[0]
-      || null
-    )
-  },
+        WHERE ss.student_id =
+          @studentId
+      `)
+
+  return (
+    result.recordset[0]
+    || null
+  )
+},
 
   // =====================================
   // API 18
@@ -196,7 +217,7 @@ export const readinessRepository = {
           FROM student_scores ss
 
           INNER JOIN students s
-            ON s.user_id =
+            ON s.student_id =
               ss.student_id
 
           WHERE s.school_id =
@@ -208,4 +229,36 @@ export const readinessRepository = {
 
     return result.recordset
   },
+  
+  checkSchoolExists: async (
+
+  schoolId: number,
+
+): Promise<boolean> => {
+
+  const pool =
+    await getPool()
+
+  const result =
+    await pool.request()
+
+      .input(
+        'schoolId',
+        sql.Int,
+        schoolId,
+      )
+
+      .query(`
+        SELECT school_id
+
+        FROM schools
+
+        WHERE school_id =
+          @schoolId
+      `)
+
+  return (
+    result.recordset.length > 0
+  )
+},
 }

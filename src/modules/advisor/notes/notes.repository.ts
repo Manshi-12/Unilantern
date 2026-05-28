@@ -49,7 +49,7 @@ export const notesRepository = {
           FROM advisor_notes an
 
           INNER JOIN students s
-            ON s.user_id =
+            ON s.student_id =
               an.student_id
 
           WHERE
@@ -149,9 +149,9 @@ export const notesRepository = {
         )
 
         .query(`
-          SELECT user_id
+          SELECT student_id
           FROM students
-          WHERE user_id =
+          WHERE student_id =
             @studentId
         `)
 

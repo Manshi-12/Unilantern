@@ -147,8 +147,8 @@ export const advisorAuthController = {
 
     try {
 
-      const refreshToken =
-  req.body.refreshToken;
+     const refreshToken =
+  req.body.refresh_token;
 
       await advisorAuthService
         .logoutAdvisor(
@@ -182,7 +182,7 @@ export const advisorAuthController = {
     try {
 
      const refreshToken =
-  req.body.refreshToken;
+  req.body.refresh_token;
 
       if (!refreshToken) {
 

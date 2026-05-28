@@ -13,7 +13,7 @@ export interface StudentSummary {
     primary_limiter: string | null
     trend_direction: string | null
     saved_colleges: number
-    last_active_at: Date | null
+    last_login_at: Date | null
   }
   
   export interface StudentAcademics {

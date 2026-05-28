@@ -58,7 +58,7 @@ export const tasksRepository = {
           FROM advisor_tasks at
 
           LEFT JOIN students s
-            ON s.user_id =
+            ON s.student_id =
               at.student_id
 
           WHERE at.advisor_id =
@@ -179,11 +179,11 @@ export const tasksRepository = {
         )
 
         .query(`
-          SELECT user_id
+          SELECT student_id
 
           FROM students
 
-          WHERE user_id =
+          WHERE student_id =
             @studentId
         `)
 
