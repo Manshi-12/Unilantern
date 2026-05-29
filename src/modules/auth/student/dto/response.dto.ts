@@ -1,29 +1,3 @@
-export interface StudentRegisterInitResponseDto {
-  otp_sent: true;
-  phone_masked: string;
-  expires_in_seconds: number;
-}
-
-export interface StudentAuthResponseDto {
-  access_token: string;
-  student_id: string;
-  role: "student";
-  account_status: "independent" | "school_linked";
-  school_id: string | null;
-  email: string | null;
-  full_name: string;
-}
-
-export interface StudentRegisterVerifyResponseDto {
-  student_id: string;
-  access_token: string;
-  refresh_token: string;
-  account_status: "independent" | "school_linked";
-  consents_recorded: string[];
-}
-
-// ── New APIs (1.1 – 1.8) ──────────────────────────────────────────────────
-
 export interface OtpSentResponseDto {
   otp_sent: true;
   phone_masked: string;
@@ -44,9 +18,16 @@ export interface ValidateInviteResponseDto {
   school_name: string | null;
 }
 
-export interface TokenPairResponseDto extends StudentAuthResponseDto {
+export interface TokenPairResponseDto {
+  access_token: string;
   refresh_token: string;
   refresh_token_expires_at: string;
+  student_id: string;
+  role: "student";
+  account_status: "independent" | "school_linked";
+  school_id: string | null;
+  email: string | null;
+  full_name: string;
 }
 
 export interface RefreshTokenResponseDto {

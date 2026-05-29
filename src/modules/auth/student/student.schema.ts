@@ -36,45 +36,6 @@ const inviteToken = z
 const currentYear = new Date().getUTCFullYear();
 const signupGrade = z.number().int().min(9).max(12).optional();
 
-export const registerInitSchema = z.object({
-  phone_number: phoneNumber,
-  email: emailAddress,
-  full_name: fullName,
-  grade: signupGrade,
-  graduation_year: z
-    .number()
-    .int()
-    .min(currentYear - 20, `graduation_year must be >= ${currentYear - 20}`)
-    .max(currentYear + 10, `graduation_year must be <= ${currentYear + 10}`),
-  date_of_birth: z
-    .string()
-    .regex(isoDateRegex, "date_of_birth must be YYYY-MM-DD")
-    .refine((v) => !Number.isNaN(new Date(`${v}T00:00:00Z`).getTime()), "Invalid date")
-    .refine((v) => computeAge(v) >= 13, "Must be at least 13 years old"),
-  high_school_name: z.string().trim().min(1).max(200),
-  state_of_residence: z.string().trim().min(1).max(100),
-  confirms_age_13_plus: requiredAgeConfirmation,
-  confirms_parental_permission: z.boolean(),
-  invite_token: inviteToken,
-  college_data_share_consent: z.boolean().optional().default(true),
-});
-
-export const registerVerifySchema = z.object({
-  phone_number: phoneNumber,
-  otp_code: otpCode,
-});
-
-export const loginSendOtpSchema = z.object({
-  phone_number: phoneNumber,
-});
-
-export const loginVerifySchema = z.object({
-  phone_number: phoneNumber,
-  otp_code: otpCode,
-});
-
-// ── New schemas for 1.1 – 1.8 ─────────────────────────────────────────────
-
 export const sendOtpSchema = z.object({
   phone_number: phoneNumber,
   purpose: z.enum(["signup", "login"]),

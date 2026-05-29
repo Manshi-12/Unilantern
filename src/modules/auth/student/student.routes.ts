@@ -17,38 +17,6 @@ const controller = new StudentController(
   ),
 );
 
-// ── Registration (LEGACY/Multi-step) ──────────────────────────────────────────
-// Step 1: Submit profile details → OTP sent to phone
-router.post(
-  "/register",
-  rateLimiter("signup", RATE_LIMITS.SIGNUP.limit, RATE_LIMITS.SIGNUP.window, { identifier: "ip" }),
-  controller.registerInit,
-);
-
-// Step 2: Verify OTP → account created → JWT returned
-router.post(
-  "/register/verify",
-  rateLimiter("otp_verify", RATE_LIMITS.OTP_VERIFY.limit, RATE_LIMITS.OTP_VERIFY.window),
-  controller.registerVerify,
-);
-
-// ── Login (LEGACY/Multi-step) ─────────────────────────────────────────────────
-// Step 1: Submit phone → OTP sent
-router.post(
-  "/login-legacy",
-  rateLimiter("login_otp_send", RATE_LIMITS.OTP_SEND.limit, RATE_LIMITS.OTP_SEND.window, { identifier: "phone_number" }),
-  controller.loginSendOtp,
-);
-
-// Step 2: Verify OTP → JWT returned
-router.post(
-  "/login/verify-legacy",
-  rateLimiter("login_verify", RATE_LIMITS.LOGIN.limit, RATE_LIMITS.LOGIN.window, { identifier: "phone_number" }),
-  controller.loginVerify,
-);
-
-// ── Modern Auth APIs (1.1 – 1.8) ───────────────────────────────────────────
-
 // 1.1 POST /otp/send
 router.post(
   "/otp/send",
