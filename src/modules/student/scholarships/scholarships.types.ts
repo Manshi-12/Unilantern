@@ -11,6 +11,7 @@ export interface ScholarshipRecord {
   application_link: string | null;
   scholarship_type: ScholarshipType | null;
   is_saved: boolean;
+  is_flagged_by_advisor: boolean;
 }
 
 export interface ScholarshipListFilters {
@@ -41,4 +42,11 @@ export interface SavedScholarshipRecord {
 export interface SavedScholarshipWithDetails extends ScholarshipRecord {
   saved_scholarship_id: number;
   saved_at: Date;
+}
+
+export interface FlaggedScholarshipWithDetails extends ScholarshipRecord {
+  flag_id: number;
+  advisor_id: number;
+  note: string | null;
+  flagged_at: Date;
 }

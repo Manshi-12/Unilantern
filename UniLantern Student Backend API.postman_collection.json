@@ -1804,7 +1804,7 @@
                 }
               ]
             },
-            "description": "List all available scholarships. Supports pagination. Rate limit: 60/min"
+            "description": "List all available scholarships. Supports pagination and includes is_flagged_by_advisor from advisor_flagged_scholarships. Rate limit: 60/min"
           },
           "response": []
         },
@@ -1835,7 +1835,7 @@
                 "4"
               ]
             },
-            "description": "Get detailed information about a specific scholarship"
+            "description": "Get detailed information about a specific scholarship, including is_flagged_by_advisor from advisor_flagged_scholarships"
           },
           "response": []
         },
@@ -1948,7 +1948,41 @@
                 "scholarships",
                 "saved"
               ]
-            }
+            },
+            "description": "List saved scholarships, including is_flagged_by_advisor from advisor_flagged_scholarships"
+          },
+          "response": []
+        },
+        {
+          "name": "8.5 GET Flagged Scholarships",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/scholarships/flagged",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "scholarships",
+                "flagged"
+              ]
+            },
+            "description": "List scholarships flagged for the student by advisors. Includes saved and unsaved scholarships with is_saved status."
           },
           "response": []
         }

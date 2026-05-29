@@ -1,8 +1,10 @@
 import { sql, getPool } from "../../../db/client.js";
+import { ADVISOR_FLAGGED_SCHOLARSHIPS_TABLE } from "../../../db/schema/advisor-flagged-scholarships.js";
 import { SCHOLARSHIPS_TABLE } from "../../../db/schema/scholarships.js";
 import { STUDENT_PROFILES_TABLE } from "../../../db/schema/student-profiles.js";
 import { STUDENT_SAVED_SCHOLARSHIPS_TABLE } from "../../../db/schema/student-saved-scholarships.js";
 import type {
+  FlaggedScholarshipWithDetails,
   SavedScholarshipRecord,
   SavedScholarshipWithDetails,
   ScholarshipListFilters,
@@ -10,13 +12,21 @@ import type {
   ScholarshipRecord,
 } from "./scholarships.types.js";
 
-type RawScholarshipRow = Omit<ScholarshipRecord, "is_saved"> & {
+type RawScholarshipRow = Omit<ScholarshipRecord, "is_saved" | "is_flagged_by_advisor"> & {
   is_saved: boolean | number;
+  is_flagged_by_advisor: boolean | number;
 };
 
 type RawSavedScholarshipRow = RawScholarshipRow & {
   saved_scholarship_id: number;
   saved_at: Date;
+};
+
+type RawFlaggedScholarshipRow = RawScholarshipRow & {
+  flag_id: number;
+  advisor_id: number;
+  note: string | null;
+  flagged_at: Date;
 };
 
 function mapScholarship(row: RawScholarshipRow): ScholarshipRecord {
@@ -31,6 +41,7 @@ function mapScholarship(row: RawScholarshipRow): ScholarshipRecord {
     application_link: row.application_link,
     scholarship_type: row.scholarship_type,
     is_saved: Boolean(row.is_saved),
+    is_flagged_by_advisor: Boolean(row.is_flagged_by_advisor),
   };
 }
 
@@ -40,6 +51,17 @@ function mapSavedScholarship(row: RawSavedScholarshipRow): SavedScholarshipWithD
     saved_scholarship_id: row.saved_scholarship_id,
     saved_at: row.saved_at,
     is_saved: true,
+  };
+}
+
+function mapFlaggedScholarship(row: RawFlaggedScholarshipRow): FlaggedScholarshipWithDetails {
+  return {
+    ...mapScholarship(row),
+    flag_id: row.flag_id,
+    advisor_id: row.advisor_id,
+    note: row.note,
+    flagged_at: row.flagged_at,
+    is_flagged_by_advisor: true,
   };
 }
 
@@ -139,11 +161,19 @@ export class ScholarshipsRepository {
             s.scholarship_id, s.scholarship_name, s.provider, s.college_id,
             s.eligibility_summary, s.deadline, s.award_amount, s.application_link,
             s.scholarship_type,
-            CASE WHEN ss.saved_scholarship_id IS NULL THEN 0 ELSE 1 END AS is_saved
+            CASE WHEN ss.saved_scholarship_id IS NULL THEN 0 ELSE 1 END AS is_saved,
+            CASE WHEN afs.scholarship_id IS NULL THEN 0 ELSE 1 END AS is_flagged_by_advisor
            FROM ${SCHOLARSHIPS_TABLE} s
            LEFT JOIN ${STUDENT_SAVED_SCHOLARSHIPS_TABLE} ss
              ON ss.scholarship_id = s.scholarship_id
             AND ss.student_id = @student_id
+           LEFT JOIN (
+             SELECT DISTINCT student_id, scholarship_id
+               FROM ${ADVISOR_FLAGGED_SCHOLARSHIPS_TABLE}
+              WHERE student_id = @student_id
+           ) afs
+             ON afs.scholarship_id = s.scholarship_id
+            AND afs.student_id = @student_id
           WHERE ${whereClause}
           ORDER BY ${orderBy};`,
       ),
@@ -178,11 +208,19 @@ export class ScholarshipsRepository {
             s.scholarship_id, s.scholarship_name, s.provider, s.college_id,
             s.eligibility_summary, s.deadline, s.award_amount, s.application_link,
             s.scholarship_type,
-            CASE WHEN ss.saved_scholarship_id IS NULL THEN 0 ELSE 1 END AS is_saved
+            CASE WHEN ss.saved_scholarship_id IS NULL THEN 0 ELSE 1 END AS is_saved,
+            CASE WHEN afs.scholarship_id IS NULL THEN 0 ELSE 1 END AS is_flagged_by_advisor
            FROM ${SCHOLARSHIPS_TABLE} s
            LEFT JOIN ${STUDENT_SAVED_SCHOLARSHIPS_TABLE} ss
              ON ss.scholarship_id = s.scholarship_id
             AND ss.student_id = @student_id
+           LEFT JOIN (
+             SELECT DISTINCT student_id, scholarship_id
+               FROM ${ADVISOR_FLAGGED_SCHOLARSHIPS_TABLE}
+              WHERE student_id = @student_id
+           ) afs
+             ON afs.scholarship_id = s.scholarship_id
+            AND afs.student_id = @student_id
           WHERE s.scholarship_id = @scholarship_id
             AND s.is_active = 1;`,
       );
@@ -202,15 +240,52 @@ export class ScholarshipsRepository {
             s.scholarship_id, s.scholarship_name, s.provider, s.college_id,
             s.eligibility_summary, s.deadline, s.award_amount, s.application_link,
             s.scholarship_type,
-            1 AS is_saved
+            1 AS is_saved,
+            CASE WHEN afs.scholarship_id IS NULL THEN 0 ELSE 1 END AS is_flagged_by_advisor
            FROM ${STUDENT_SAVED_SCHOLARSHIPS_TABLE} ss
            INNER JOIN ${SCHOLARSHIPS_TABLE} s
              ON s.scholarship_id = ss.scholarship_id
+           LEFT JOIN (
+             SELECT DISTINCT student_id, scholarship_id
+               FROM ${ADVISOR_FLAGGED_SCHOLARSHIPS_TABLE}
+              WHERE student_id = @student_id
+           ) afs
+             ON afs.scholarship_id = s.scholarship_id
+            AND afs.student_id = ss.student_id
           WHERE ss.student_id = @student_id
             AND s.is_active = 1
           ORDER BY ss.saved_at DESC, ss.saved_scholarship_id DESC;`,
       );
     return result.recordset.map(mapSavedScholarship);
+  }
+
+  async listFlagged(studentId: number): Promise<FlaggedScholarshipWithDetails[]> {
+    const pool = await getPool();
+    const result = await pool
+      .request()
+      .input("student_id", sql.Int, studentId)
+      .query<RawFlaggedScholarshipRow>(
+        `SELECT
+            afs.flag_id,
+            afs.advisor_id,
+            afs.note,
+            afs.flagged_at,
+            s.scholarship_id, s.scholarship_name, s.provider, s.college_id,
+            s.eligibility_summary, s.deadline, s.award_amount, s.application_link,
+            s.scholarship_type,
+            CASE WHEN ss.saved_scholarship_id IS NULL THEN 0 ELSE 1 END AS is_saved,
+            1 AS is_flagged_by_advisor
+           FROM ${ADVISOR_FLAGGED_SCHOLARSHIPS_TABLE} afs
+           INNER JOIN ${SCHOLARSHIPS_TABLE} s
+             ON s.scholarship_id = afs.scholarship_id
+           LEFT JOIN ${STUDENT_SAVED_SCHOLARSHIPS_TABLE} ss
+             ON ss.scholarship_id = afs.scholarship_id
+            AND ss.student_id = afs.student_id
+          WHERE afs.student_id = @student_id
+            AND s.is_active = 1
+          ORDER BY afs.flagged_at DESC, afs.flag_id DESC;`,
+      );
+    return result.recordset.map(mapFlaggedScholarship);
   }
 
   async save(studentId: number, scholarshipId: number): Promise<SavedScholarshipRecord> {

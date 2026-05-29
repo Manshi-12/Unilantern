@@ -11,6 +11,7 @@ export interface ScholarshipPublicResponseDto {
   application_link: string | null;
   scholarship_type: ScholarshipType | null;
   is_saved: boolean;
+  is_flagged_by_advisor: boolean;
 }
 
 export interface ScholarshipListResponseDto {
@@ -27,6 +28,18 @@ export interface SavedScholarshipPublicResponseDto extends ScholarshipPublicResp
 
 export interface SavedScholarshipListResponseDto {
   data: SavedScholarshipPublicResponseDto[];
+  total: number;
+}
+
+export interface FlaggedScholarshipPublicResponseDto extends ScholarshipPublicResponseDto {
+  flag_id: number;
+  advisor_id: number;
+  note: string | null;
+  flagged_at: string;
+}
+
+export interface FlaggedScholarshipListResponseDto {
+  data: FlaggedScholarshipPublicResponseDto[];
   total: number;
 }
 
