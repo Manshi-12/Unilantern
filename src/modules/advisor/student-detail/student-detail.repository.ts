@@ -58,7 +58,7 @@ export const studentDetailRepository = {
         .query(`
           SELECT
 
-            s.user_id AS student_id,
+            s.student_id AS student_id,
             s.full_name,
 
             sch.school_name,
@@ -73,14 +73,23 @@ export const studentDetailRepository = {
             ss.service_band,
 
             ss.primary_limiter,
-            ss.trend_direction,
+
+            CASE
+              WHEN sh.trend_direction = 'improving'
+                THEN 'improving'
+
+              WHEN sh.trend_direction = 'declining'
+                THEN 'declining'
+
+              ELSE 'stable'
+            END AS trend,
 
             ISNULL(
               sc.saved_colleges,
               0
             ) AS saved_colleges,
 
-            se.last_active_at
+            s.last_login_at AS last_login_at
 
           FROM students s
 
@@ -90,11 +99,21 @@ export const studentDetailRepository = {
 
           LEFT JOIN student_scores ss
             ON ss.student_id =
-              s.user_id
+              s.student_id
 
-          LEFT JOIN student_engagement se
-            ON se.student_id =
-              s.user_id
+          LEFT JOIN (
+            SELECT
+              student_id,
+              trend_direction,
+              ROW_NUMBER() OVER (
+                PARTITION BY student_id
+                ORDER BY snapshot_at DESC
+              ) AS rn
+            FROM student_score_history
+          ) sh
+            ON sh.student_id =
+              s.student_id
+           AND sh.rn = 1
 
           LEFT JOIN (
 
@@ -110,9 +129,9 @@ export const studentDetailRepository = {
 
           ) sc
             ON sc.student_id =
-              s.user_id
+              s.student_id
 
-          WHERE s.user_id =
+          WHERE s.student_id =
             @studentId
 
             AND s.school_id =
@@ -152,14 +171,15 @@ export const studentDetailRepository = {
         .query(`
           SELECT
 
-            academic_id,
-            student_id,
-            gpa,
-            sat_score,
-            act_score,
-            honors_courses,
-            ap_courses,
-            created_at
+  academics_id,
+  student_id,
+  unweighted_gpa,
+  course_rigor,
+  test_status,
+  sat_score,
+  act_score,
+  created_at,
+  updated_at
 
           FROM student_academics
 
@@ -200,23 +220,27 @@ export const studentDetailRepository = {
         .query(`
           SELECT
 
-            ec_id,
-            student_id,
-            activity_name,
-            role_name,
-            organization,
-            start_date,
-            end_date,
-            description,
-            created_at
+  activity_id,
+  student_id,
+  activity_name,
+  activity_type,
+  years_involved,
+  involvement_level,
+  activity_description,
+  impact_text,
+  impact_level,
+  hours_per_week,
+  experience_duration_weeks,
+  created_at,
+  updated_at
 
-          FROM student_extracurriculars
+FROM extracurricular_activities
 
-          WHERE student_id =
-            @studentId
+WHERE student_id =
+  @studentId
 
-          ORDER BY
-            created_at DESC
+ORDER BY
+  created_at DESC
         `)
 
     return result.recordset
@@ -249,19 +273,24 @@ export const studentDetailRepository = {
         .query(`
           SELECT TOP 1
 
-            essay_id,
-            student_id,
-            prompt,
-            content,
-            created_at
+  essay_id,
+  student_id,
+  essay_prompt,
+  essay_text,
+  word_count,
+  essay_status,
+  reviewed_at,
+  finalized_at,
+  created_at,
+  updated_at
 
-          FROM student_essays
+FROM student_essays
 
-          WHERE student_id =
-            @studentId
+WHERE student_id =
+  @studentId
 
-          ORDER BY
-            created_at DESC
+ORDER BY
+  created_at DESC
         `)
 
     return (
@@ -295,23 +324,25 @@ export const studentDetailRepository = {
         )
 
         .query(`
-          SELECT
+         SELECT
 
-            honor_id,
-            student_id,
-            title,
-            issuer,
-            awarded_at,
-            description,
-            created_at
+  award_id,
+  student_id,
+  award_name,
+  award_level,
+  frequency,
+  annual_since_grade,
+  display_order,
+  created_at,
+  updated_at
 
-          FROM student_honors
+FROM honors_awards
 
-          WHERE student_id =
-            @studentId
+WHERE student_id =
+  @studentId
 
-          ORDER BY
-            awarded_at DESC
+ORDER BY
+  created_at DESC
         `)
 
     return result.recordset
@@ -344,22 +375,24 @@ export const studentDetailRepository = {
         .query(`
           SELECT
 
-            service_id,
-            student_id,
-            organization,
-            hours_completed,
-            start_date,
-            end_date,
-            description,
-            created_at
+  service_id,
+  student_id,
+  total_hours_range,
+  action_type,
+  is_leadership,
+  duration_months,
+  display_order,
+  description,
+  created_at,
+  updated_at
 
-          FROM student_community_service
+FROM community_service_entries
 
-          WHERE student_id =
-            @studentId
+WHERE student_id =
+  @studentId
 
-          ORDER BY
-            created_at DESC
+ORDER BY
+  created_at DESC
         `)
 
     return result.recordset
@@ -394,15 +427,30 @@ export const studentDetailRepository = {
         )
 
         .query(`
-          SELECT TOP 1
+         SELECT
 
-            ec_sharing,
-            essay_sharing
+  MAX(
+    CASE
+      WHEN consent_type = 'ec_sharing'
+       AND status = 'granted'
+      THEN 1
+      ELSE 0
+    END
+  ) AS ec_sharing,
 
-          FROM student_consent_settings
+  MAX(
+    CASE
+      WHEN consent_type = 'essay_sharing'
+       AND status = 'granted'
+      THEN 1
+      ELSE 0
+    END
+  ) AS essay_sharing
 
-          WHERE student_id =
-            @studentId
+FROM student_consents
+
+WHERE student_id =
+  @studentId
         `)
 
     if (

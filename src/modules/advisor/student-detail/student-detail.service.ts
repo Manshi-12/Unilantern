@@ -321,47 +321,51 @@ export const studentDetailService = {
     // Engagement Check
     // =====================================
 
-    if (!student.last_active_at) {
+   // =====================================
+// Engagement Check
+// =====================================
 
-      opportunities.push({
+if (!student.last_login_at) {
 
-        category:
-          'Engagement',
+  opportunities.push({
 
-        message:
-          'Student has never logged in.',
+    category:
+      'Engagement',
 
-        priority:
-          'high',
-      })
+    message:
+      'Student has never logged in.',
 
-    } else {
+    priority:
+      'high',
+  })
 
-      const cutoff =
-        new Date()
+} else {
 
-      cutoff.setDate(
-        cutoff.getDate() - 14,
-      )
+  const cutoff =
+    new Date()
 
-      if (
-        student.last_active_at
-          < cutoff
-      ) {
+  cutoff.setDate(
+    cutoff.getDate() - 14,
+  )
 
-        opportunities.push({
+  if (
+    new Date(student.last_login_at)
+      < cutoff
+  ) {
 
-          category:
-            'Engagement',
+    opportunities.push({
 
-          message:
-            'Student inactive for more than 14 days.',
+      category:
+        'Engagement',
 
-          priority:
-            'medium',
-        })
-      }
-    }
+      message:
+        'Student inactive for more than 14 days.',
+
+      priority:
+        'medium',
+    })
+  }
+}
 
     // =====================================
     // No Issues
