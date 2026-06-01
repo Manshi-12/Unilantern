@@ -7,6 +7,8 @@ export interface RegisterAdvisorRequestDto {
 
   token: string;
 
+  email: string;
+
   full_name: string;
 
   contact_no?: string;
