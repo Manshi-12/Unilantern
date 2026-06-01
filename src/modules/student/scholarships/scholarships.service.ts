@@ -3,6 +3,8 @@ import { ConflictError } from "../../../shared/errors/conflict-error.js";
 import { AuthErrorCode } from "../../../shared/response/error-codes.js";
 import type { ScholarshipsFilterRequestDto, SaveScholarshipRequestDto } from "./dto/request.dto.js";
 import type {
+  FlaggedScholarshipListResponseDto,
+  FlaggedScholarshipPublicResponseDto,
   SaveScholarshipResponseDto,
   SavedScholarshipListResponseDto,
   SavedScholarshipPublicResponseDto,
@@ -57,6 +59,20 @@ export class ScholarshipsService {
     };
   }
 
+  async listFlagged(studentId: number): Promise<FlaggedScholarshipListResponseDto> {
+    const flagged = await this.scholarshipsRepo.listFlagged(studentId);
+    return {
+      data: flagged.map((scholarship): FlaggedScholarshipPublicResponseDto => ({
+        ...this.mapScholarship(scholarship),
+        flag_id: scholarship.flag_id,
+        advisor_id: scholarship.advisor_id,
+        note: scholarship.note,
+        flagged_at: scholarship.flagged_at.toISOString(),
+      })),
+      total: flagged.length,
+    };
+  }
+
   async save(studentId: number, dto: SaveScholarshipRequestDto): Promise<SaveScholarshipResponseDto> {
     const scholarship = await this.scholarshipsRepo.findActiveById(dto.scholarship_id, studentId);
     if (!scholarship) {
@@ -95,6 +111,7 @@ export class ScholarshipsService {
       application_link: scholarship.application_link,
       scholarship_type: scholarship.scholarship_type,
       is_saved: scholarship.is_saved,
+      is_flagged_by_advisor: scholarship.is_flagged_by_advisor,
     };
   }
 }
