@@ -151,6 +151,29 @@ export const advisorAuthService = {
         'This invite has already been used',
       )
     }
+    if (
+    body.email
+    .toLowerCase()
+    !==
+    invite.invited_email
+    .toLowerCase()
+    ) {
+
+      throw new UnauthorizedError(
+    'Email does not match invited email',
+      )
+    }
+
+    if (
+  !body.email
+    .toLowerCase()
+    .endsWith('.edu')
+) {
+
+  throw new UnauthorizedError(
+    'Invalid email domain. Only .edu email addresses are allowed',
+  )
+}
 
     if (
       invite.status === 'expired'

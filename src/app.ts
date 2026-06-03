@@ -1,6 +1,5 @@
 import cors from "cors";
 import helmet from "helmet";
-import cookieParser from "cookie-parser";
 import express, {
   type NextFunction,
   type Request,
@@ -11,7 +10,7 @@ import { ZodError } from "zod";
 // ── Shared Middleware ─────────────────────────────────────────────────────────
 import { requestId } from "./shared/middleware/request-id.js";
 import { requestLogger } from "./shared/middleware/logger.js";
-import { authenticateAdvisor } from "./shared/middleware/authenticate.js";
+import { authenticate } from "./shared/middleware/authenticate.js";
 import { auditLogger as globalAuditLogger } from "./shared/middleware/audit-logger.js";
 
 // ── Error Classes ─────────────────────────────────────────────────────────────
@@ -79,14 +78,18 @@ import feedbackRoutes from "./modules/advisor/feedback/feedback.routes.js";
 const app = express();
 
 // ── Global Middleware ─────────────────────────────────────────────────────────
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 app.use(requestId);
 app.use(requestLogger);
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());       // Security headers — safe for both student and advisor
-app.use(cookieParser()); // Required by advisor cookie-based auth; harmless for student
-
+app.use(globalAuditLogger);
 // ─────────────────────────────────────────────────────────────────────────────
 // STUDENT ROUTES
 //
@@ -130,17 +133,17 @@ app.use("/api/v1/students/me/readiness", readinessRouter);
 // Advisor auth (email + password login — public endpoint)
 app.use("/api/v1/auth/advisor", advisorAuthRoutes);
 
-// Protected advisor routes — authenticateAdvisor applied here at the app level
-app.use("/api/v1/advisor/roster",         authenticateAdvisor, rosterRoutes);
-app.use("/api/v1/advisor/students",       authenticateAdvisor, studentDetailRoutes);
-app.use("/api/v1/advisor/readiness",      authenticateAdvisor, advisorReadinessRoutes);
-app.use("/api/v1/advisor/consent",        authenticateAdvisor, consentRoutes);
-app.use("/api/v1/advisor/colleges",       authenticateAdvisor, advisorCollegesRoutes);
-app.use("/api/v1/advisor/scholarships",   authenticateAdvisor, advisorScholarshipsRoutes);
-app.use("/api/v1/advisor/notes",          authenticateAdvisor, notesRoutes);
-app.use("/api/v1/advisor/tasks",          authenticateAdvisor, tasksRoutes);
-app.use("/api/v1/advisor/notifications",  authenticateAdvisor, advisorNotificationsRoutes);
-app.use("/api/v1/advisor/feedback",       authenticateAdvisor, feedbackRoutes);
+// Protected advisor routes — authenticate applied here at the app level
+app.use("/api/v1/advisor/roster",         authenticate, rosterRoutes);
+app.use("/api/v1/advisor/students",       authenticate, studentDetailRoutes);
+app.use("/api/v1/advisor/readiness",      authenticate, advisorReadinessRoutes);
+app.use("/api/v1/advisor/consent",        authenticate, consentRoutes);
+app.use("/api/v1/advisor/colleges",       authenticate, advisorCollegesRoutes);
+app.use("/api/v1/advisor/scholarships",   authenticate, advisorScholarshipsRoutes);
+app.use("/api/v1/advisor/notes",          authenticate, notesRoutes);
+app.use("/api/v1/advisor/tasks",          authenticate, tasksRoutes);
+app.use("/api/v1/advisor/notifications",  authenticate, advisorNotificationsRoutes);
+app.use("/api/v1/advisor/feedback",       authenticate, feedbackRoutes);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ROOT / HEALTH ROUTES
@@ -163,9 +166,6 @@ app.get("/health", (_req: Request, res: Response) => {
 // Runs after all route handlers. Logs completed requests for the advisor module.
 // (Student routes do per-action audit logging inside auth.ts via auditLogger().)
 // ─────────────────────────────────────────────────────────────────────────────
-
-app.use(globalAuditLogger);
-
 // ─────────────────────────────────────────────────────────────────────────────
 // 404 HANDLER
 // ─────────────────────────────────────────────────────────────────────────────

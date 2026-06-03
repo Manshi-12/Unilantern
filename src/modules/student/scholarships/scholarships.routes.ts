@@ -36,6 +36,15 @@ router.get(
   controller.listSavedScholarships,
 );
 
+router.get(
+  "/students/me/scholarships/flagged",
+  rateLimiter("scholarships_flagged_list", RATE_LIMITS.SCHOLARSHIPS_LIST.limit, RATE_LIMITS.SCHOLARSHIPS_LIST.window),
+  verifyJWT,
+  requireRole("student"),
+  auditLogger("scholarships_flagged_list"),
+  controller.listFlaggedScholarships,
+);
+
 router.post(
   "/students/me/scholarships/saved",
   rateLimiter("scholarships_save", RATE_LIMITS.SCHOLARSHIPS_WRITE.limit, RATE_LIMITS.SCHOLARSHIPS_WRITE.window),

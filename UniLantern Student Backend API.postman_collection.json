@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "c5d67dd7-db44-4e8f-bd06-c21593b5eb52",
     "name": "UniLantern Student Backend API",
-    "description": "Comprehensive Postman collection covering all 71 requests for the current UniLantern Backend API, updated from the Express routes and Zod schemas in src as of 2026-05-22.\n\nBase URL: {{base_url}} (default: http://localhost:3000)\n\nAuth quick start:\n1. POST /api/v1/auth/student/otp/send with purpose signup or login.\n2. POST /api/v1/auth/student/otp/verify and copy phone_verify_token from the response.\n3. For signup, POST /api/v1/auth/student/signup with phone_verify_token and required profile fields. Signup creates the student profile row immediately.\n4. For login, POST /api/v1/auth/student/login with phone_verify_token.\n5. Store access_token and refresh_token for authenticated endpoints.\n\nReadiness scoring is queued asynchronously after profile, academics, extracurricular, essay, awards, and service writes.",
+    "description": "Comprehensive Postman collection covering all 71 requests for the current UniLantern Backend API, updated from the Express routes and Zod schemas in src as of 2026-05-14.\n\nBase URL: {{base_url}} (default: http://localhost:3000)\n\nAuth quick start:\n1. POST /api/v1/auth/student/otp/send with purpose signup or login.\n2. POST /api/v1/auth/student/otp/verify and copy phone_verify_token from the response.\n3. For signup, POST /api/v1/auth/student/signup with phone_verify_token and required profile fields.\n4. For login, POST /api/v1/auth/student/login with phone_verify_token.\n5. Store access_token and refresh_token for authenticated endpoints.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "53666632"
   },
@@ -69,7 +69,7 @@
       "name": "🔐 Authentication",
       "item": [
         {
-          "name": "OTP Send (For invited student) RL",
+          "name": "OTP Send",
           "event": [
             {
               "listen": "test",
@@ -101,7 +101,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone_number\": \"+12125551232\",\n  \"purpose\": \"signup\"\n}",
+              "raw": "{\n  \"phone_number\": \"+12125551237\",\n  \"purpose\": \"login\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -127,7 +127,7 @@
           "response": []
         },
         {
-          "name": "OTP Verify (For invited student) RL",
+          "name": "OTP Verify",
           "event": [
             {
               "listen": "test",
@@ -157,7 +157,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone_number\": \"+12125551232\",\n  \"otp_code\": \"123456\",\n  \"purpose\": \"signup\"\n}",
+              "raw": "{\n    \"phone_number\": \"+12125551237\",\n    \"otp_code\": \"699893\",\n    \"purpose\": \"login\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -220,43 +220,7 @@
           "response": []
         },
         {
-          "name": "Signup",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"phone_verify_token\": \"{{phone_verify_token}}\",\n  \"full_name\": \"Carlos Sainz\",\n  \"grade\": 12,\n  \"graduation_year\": 2026,\n  \"date_of_birth\": \"2007-03-20\",\n  \"high_school_name\": \"Lincoln High School\",\n  \"state_of_residence\": \"California\",\n  \"confirms_age_13_plus\": true,\n  \"confirms_parental_permission\": true,\n  \"invite_token\": \"optional_invite_token_from_school\",\n  \"college_data_share_consent\": true\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/student/signup",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "student",
-                "signup"
-              ]
-            },
-            "description": "Complete signup with a verified phone token. Creates both students and student_profiles in one transaction, records signup consents in student_consents, and returns access_token plus refresh_token."
-          },
-          "response": []
-        },
-        {
-          "name": "Register",
+          "name": "signup",
           "event": [
             {
               "listen": "test",
@@ -291,7 +255,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone_number\": \"+12125551237\",\n  \"email\": \"alex.albon@westvalleyacademy.org\",\n  \"full_name\": \"Alex Albon\",\n  \"grade\": 11,\n  \"graduation_year\": 2027,\n  \"date_of_birth\": \"2009-09-12\",\n  \"high_school_name\": \"West Valley Academy\",\n  \"state_of_residence\": \"California\",\n  \"confirms_age_13_plus\": true,\n  \"confirms_parental_permission\": true,\n  \"college_data_share_consent\": true\n}",
+              "raw": "{\n  \"phone_number\": \"+12125551237\",\n  \"email\": \"alex.albon@westvalleyacademy.org\",\n  \"full_name\": \"Alex Albon\",\n  \"graduation_year\": 2027,\n  \"date_of_birth\": \"2009-09-12\",\n  \"high_school_name\": \"West Valley Academy\",\n  \"state_of_residence\": \"California\",\n  \"confirms_age_13_plus\": true,\n  \"confirms_parental_permission\": true,\n  \"college_data_share_consent\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -311,173 +275,7 @@
                 "register"
               ]
             },
-            "description": "Complete legacy signup with verified phone number. Returns access_token and refresh_token and creates the student_profiles row immediately.\n\nRequired fields:\n\n- phone_number (E.164 format)\n    \n- otp_code (from OTP verify)\n    \n- email\n    \n- full_name\n    \n- graduation_year (integer)\n    \n- date_of_birth (YYYY-MM-DD)\n    \n- high_school_name\n    \n- state_of_residence\n    \n- confirms_age_13_plus (boolean, must be true)\n    \n- confirms_parental_permission (boolean, must be true)\n\nOptional:\n\n- grade (9-12)"
-          },
-          "response": []
-        },
-        {
-          "name": "Register Verify (Legacy)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"phone_number\": \"+12125551237\",\n  \"otp_code\": \"071844\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/student/register/verify",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "student",
-                "register",
-                "verify"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Login Send OTP (Legacy)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"phone_number\": \"+12125551237\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/student/login-legacy",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "student",
-                "login-legacy"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Login Verify OTP (Legacy)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"phone_number\": \"+12125551237\",\n    \"otp_code\": \"986161\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/student/login/verify-legacy",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "student",
-                "login",
-                "verify-legacy"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Login",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "if (jsonData.success && jsonData.data) {",
-                  "    pm.collectionVariables.set('access_token', jsonData.data.access_token);",
-                  "    pm.collectionVariables.set('refresh_token', jsonData.data.refresh_token);",
-                  "    pm.collectionVariables.set('student_id', jsonData.data.student_id);",
-                  "    pm.test('Login successful', function () {",
-                  "        pm.response.to.have.status(200);",
-                  "        pm.expect(jsonData.data.access_token).to.be.a('string');",
-                  "        pm.expect(jsonData.data.refresh_token).to.be.a('string');",
-                  "    });",
-                  "}"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"phone_verify_token\": \"{{phone_verify_token}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/student/login",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "student",
-                "login"
-              ]
-            },
-            "description": "Login with phone number and verified OTP code. Returns access_token and refresh_token."
+            "description": "Complete signup with verified phone number. Returns access_token and refresh_token.\n\nRequired fields:\n\n- phone_number (E.164 format)\n    \n- otp_code (from OTP verify)\n    \n- email\n    \n- full_name\n    \n- graduation_year (integer)\n    \n- date_of_birth (YYYY-MM-DD)\n    \n- high_school_name\n    \n- state_of_residence\n    \n- confirms_age_13_plus (boolean, must be true)\n    \n- confirms_parental_permission (boolean, must be true)"
           },
           "response": []
         },
@@ -537,89 +335,7 @@
             },
             "description": "Refresh the access token using refresh token. Call when access_token is about to expire."
           },
-          "response": [
-            {
-              "name": "Refresh Token",
-              "originalRequest": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"refresh_token\": \"9cd2cd4166ea9de69f0bf5d698df38112a74767ac945e8cb9b3b51fe6070bfc8\"\n}"
-                },
-                "url": {
-                  "raw": "{{base_url}}/api/v1/auth/student/token/refresh",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "auth",
-                    "student",
-                    "token",
-                    "refresh"
-                  ]
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "_postman_previewlanguage": "Text",
-              "header": [
-                {
-                  "key": "X-Powered-By",
-                  "value": "Express"
-                },
-                {
-                  "key": "Access-Control-Allow-Origin",
-                  "value": "*"
-                },
-                {
-                  "key": "X-Request-Id",
-                  "value": "97e49b38-3340-493b-829b-0ced7e6b14e8"
-                },
-                {
-                  "key": "X-RateLimit-Limit",
-                  "value": "20"
-                },
-                {
-                  "key": "X-RateLimit-Remaining",
-                  "value": "18"
-                },
-                {
-                  "key": "Content-Type",
-                  "value": "application/json; charset=utf-8"
-                },
-                {
-                  "key": "Content-Length",
-                  "value": "407"
-                },
-                {
-                  "key": "ETag",
-                  "value": "W/\"197-Fc0Bc45n9CiT4ixOOhnp3Z3ivMM\""
-                },
-                {
-                  "key": "Date",
-                  "value": "Wed, 13 May 2026 10:26:39 GMT"
-                },
-                {
-                  "key": "Connection",
-                  "value": "keep-alive"
-                },
-                {
-                  "key": "Keep-Alive",
-                  "value": "timeout=5"
-                }
-              ],
-              "cookie": [],
-              "body": "{\n    \"success\": true,\n    \"request_id\": \"97e49b38-3340-493b-829b-0ced7e6b14e8\",\n    \"data\": {\n        \"access_token\": \"eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic3R1ZGVudCIsInNjaG9vbF9pZCI6bnVsbCwic3ViIjoiMTAwMyIsImlhdCI6MTc3ODY2Nzk5OSwiZXhwIjoxNzc4NjY4ODk5fQ.uE0N-eI-LM3Od16D9_o61NjmuS_F447tb8WMFp_xLYg\",\n        \"refresh_token\": \"e94110cd77f0e888fb10d301d479b8c108b7e0afefa487a006a3011f1301f79b\",\n        \"refresh_token_expires_at\": \"2026-06-12T10:26:39.863Z\"\n    }\n}"
-            }
-          ]
+          "response": []
         },
         {
           "name": "Get Current User",
@@ -726,6 +442,173 @@
             "description": "Logout and invalidate current session. Optionally provide refresh_token to revoke specific session."
           },
           "response": []
+        },
+        {
+          "name": "Register Verify (Legacy)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+12125551237\",\n  \"otp_code\": \"071844\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/register/verify",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "register",
+                "verify"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Verify OTP (Legacy)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phone_number\": \"+12125551237\",\n    \"otp_code\": \"870254\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/login/verify-legacy",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "login",
+                "verify-legacy"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Send OTP (Legacy)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+12125551237\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/login-legacy",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "login-legacy"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+12125551238\",\n  \"email\": \"alex.albon@westvalleyacademy.org\",\n  \"full_name\": \"Alex Albon\",\n  \"grade\": 11,\n  \"graduation_year\": 2027,\n  \"date_of_birth\": \"2009-09-12\",\n  \"high_school_name\": \"West Valley Academy\",\n  \"state_of_residence\": \"California\",\n  \"confirms_age_13_plus\": true,\n  \"confirms_parental_permission\": true,\n  \"college_data_share_consent\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/student/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "student",
+                "register"
+              ]
+            },
+            "description": "Complete legacy signup with verified phone number. Returns access_token and refresh_token and creates the student_profiles row immediately.\n\nRequired fields:\n\n- phone_number (E.164 format)\n    \n- otp_code (from OTP verify)\n    \n- email\n    \n- full_name\n    \n- graduation_year (integer)\n    \n- date_of_birth (YYYY-MM-DD)\n    \n- high_school_name\n    \n- state_of_residence\n    \n- confirms_age_13_plus (boolean, must be true)\n    \n- confirms_parental_permission (boolean, must be true)\n\nOptional:\n\n- grade (9-12)"
+          },
+          "response": []
         }
       ]
     },
@@ -816,7 +699,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"date_of_birth\":\"2009-10-12\"\n}",
+              "raw": "{\n  \"full_name\":\"Alex Albon\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1028,7 +911,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/v1/students/me/extracurriculars/3005",
+              "raw": "{{base_url}}/api/v1/students/me/extracurriculars/1",
               "host": [
                 "{{base_url}}"
               ],
@@ -1038,7 +921,7 @@
                 "students",
                 "me",
                 "extracurriculars",
-                "3005"
+                "1"
               ]
             },
             "description": "Get details of a specific extracurricular activity"
@@ -1921,7 +1804,7 @@
                 }
               ]
             },
-            "description": "List all available scholarships. Supports pagination. Rate limit: 60/min"
+            "description": "List all available scholarships. Supports pagination and includes is_flagged_by_advisor from advisor_flagged_scholarships. Rate limit: 60/min"
           },
           "response": []
         },
@@ -1952,7 +1835,7 @@
                 "4"
               ]
             },
-            "description": "Get detailed information about a specific scholarship"
+            "description": "Get detailed information about a specific scholarship, including is_flagged_by_advisor from advisor_flagged_scholarships"
           },
           "response": []
         },
@@ -2065,7 +1948,41 @@
                 "scholarships",
                 "saved"
               ]
-            }
+            },
+            "description": "List saved scholarships, including is_flagged_by_advisor from advisor_flagged_scholarships"
+          },
+          "response": []
+        },
+        {
+          "name": "8.5 GET Flagged Scholarships",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/me/scholarships/flagged",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "me",
+                "scholarships",
+                "flagged"
+              ]
+            },
+            "description": "List scholarships flagged for the student by advisors. Includes saved and unsaved scholarships with is_saved status."
           },
           "response": []
         }
@@ -3213,7 +3130,7 @@
                 "recalculate"
               ]
             },
-            "description": "Manually triggers the central readiness scoring orchestrator. It reads academics, extracurriculars, essay, awards, service, and profile data, updates student_scores, and writes a student_score_history snapshot asynchronously."
+            "description": "Manually triggers a readiness score recalculation. Returns acknowledgement immediately; calculation runs asynchronously."
           },
           "response": []
         }

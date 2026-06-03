@@ -15,6 +15,12 @@ export const RegisterAdvisorSchema =
           "Token is required",
         ),
 
+      email:
+      z.string()
+      .email(
+        "Invalid email format",
+        ),
+
     full_name:
       z.string()
         .min(

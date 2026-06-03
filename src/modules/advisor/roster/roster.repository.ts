@@ -34,7 +34,7 @@ export const rosterRepository = {
             'foundational',
             'developing'
           )
-          OR ss.trend_direction = 'declining'
+          OR sh.trend_direction = 'declining'
         )
       `)
     }
@@ -48,8 +48,8 @@ export const rosterRepository = {
     if (filters.low_engagement) {
       conditions.push(`
         (
-          se.last_active_at IS NULL
-          OR se.last_active_at < DATEADD(DAY, -14, GETDATE())
+          s.last_login_at IS NULL
+          OR s.last_login_at < DATEADD(DAY, -14, GETDATE())
         )
       `)
     }
@@ -68,10 +68,20 @@ export const rosterRepository = {
         FROM students s
 
         LEFT JOIN student_scores ss
-          ON ss.student_id = s.user_id
+          ON ss.student_id = s.student_id
 
-        LEFT JOIN student_engagement se
-          ON se.student_id = s.user_id
+        LEFT JOIN (
+          SELECT
+            student_id,
+            trend_direction,
+            ROW_NUMBER() OVER (
+              PARTITION BY student_id
+              ORDER BY snapshot_at DESC
+            ) AS rn
+          FROM student_score_history
+        ) sh
+          ON sh.student_id = s.student_id
+         AND sh.rn = 1
 
         LEFT JOIN (
           SELECT
@@ -80,7 +90,7 @@ export const rosterRepository = {
           FROM student_saved_colleges
           GROUP BY student_id
         ) sc
-          ON sc.student_id = s.user_id
+          ON sc.student_id = s.student_id
 
         WHERE ${whereClause}
       `)
@@ -103,30 +113,30 @@ export const rosterRepository = {
 
       .query(`
         SELECT
-          s.user_id AS student_id,
+          s.student_id AS student_id,
           s.full_name,
 
           ss.readiness_band,
           ss.primary_limiter AS primary_gap,
 
           CASE
-            WHEN ss.trend_direction = 'improving'
-              THEN '↑'
+            WHEN sh.trend_direction = 'improving'
+              THEN 'improving'
 
-            WHEN ss.trend_direction = 'declining'
-              THEN '↓'
+            WHEN sh.trend_direction = 'declining'
+              THEN 'declining'
 
-            ELSE '→'
+            ELSE 'stable'
           END AS trend,
 
           ISNULL(sc.saved_colleges, 0)
             AS saved_colleges,
 
-          se.last_active_at AS last_active,
+          s.last_login_at AS last_active,
 
           CASE
-            WHEN se.last_active_at IS NULL
-              OR se.last_active_at < DATEADD(DAY, -14, GETDATE())
+            WHEN s.last_login_at IS NULL
+              OR s.last_login_at < DATEADD(DAY, -14, GETDATE())
             THEN CAST(1 AS BIT)
 
             ELSE CAST(0 AS BIT)
@@ -135,10 +145,20 @@ export const rosterRepository = {
         FROM students s
 
         LEFT JOIN student_scores ss
-          ON ss.student_id = s.user_id
+          ON ss.student_id = s.student_id
 
-        LEFT JOIN student_engagement se
-          ON se.student_id = s.user_id
+        LEFT JOIN (
+          SELECT
+            student_id,
+            trend_direction,
+            ROW_NUMBER() OVER (
+              PARTITION BY student_id
+              ORDER BY snapshot_at DESC
+            ) AS rn
+          FROM student_score_history
+        ) sh
+          ON sh.student_id = s.student_id
+         AND sh.rn = 1
 
         LEFT JOIN (
           SELECT
@@ -147,7 +167,7 @@ export const rosterRepository = {
           FROM student_saved_colleges
           GROUP BY student_id
         ) sc
-          ON sc.student_id = s.user_id
+          ON sc.student_id = s.student_id
 
         WHERE ${whereClause}
 
@@ -174,17 +194,17 @@ export const rosterRepository = {
 
       .query(`
         SELECT
-          s.user_id AS student_id,
+          s.student_id AS student_id,
           s.full_name,
 
           ss.readiness_band,
           ss.primary_limiter AS primary_gap,
 
           CASE
-            WHEN ss.trend_direction = 'improving'
+            WHEN sh.trend_direction = 'improving'
               THEN '↑'
 
-            WHEN ss.trend_direction = 'declining'
+            WHEN sh.trend_direction = 'declining'
               THEN '↓'
 
             ELSE '→'
@@ -193,11 +213,11 @@ export const rosterRepository = {
           ISNULL(sc.saved_colleges, 0)
             AS saved_colleges,
 
-          se.last_active_at AS last_active,
+          s.last_login_at AS last_active,
 
           CASE
-            WHEN se.last_active_at IS NULL
-              OR se.last_active_at < DATEADD(DAY, -14, GETDATE())
+            WHEN s.last_login_at IS NULL
+              OR s.last_login_at < DATEADD(DAY, -14, GETDATE())
             THEN CAST(1 AS BIT)
 
             ELSE CAST(0 AS BIT)
@@ -206,10 +226,20 @@ export const rosterRepository = {
         FROM students s
 
         LEFT JOIN student_scores ss
-          ON ss.student_id = s.user_id
+          ON ss.student_id = s.student_id
 
-        LEFT JOIN student_engagement se
-          ON se.student_id = s.user_id
+        LEFT JOIN (
+          SELECT
+            student_id,
+            trend_direction,
+            ROW_NUMBER() OVER (
+              PARTITION BY student_id
+              ORDER BY snapshot_at DESC
+            ) AS rn
+          FROM student_score_history
+        ) sh
+          ON sh.student_id = s.student_id
+         AND sh.rn = 1
 
         LEFT JOIN (
           SELECT
@@ -218,7 +248,7 @@ export const rosterRepository = {
           FROM student_saved_colleges
           GROUP BY student_id
         ) sc
-          ON sc.student_id = s.user_id
+          ON sc.student_id = s.student_id
 
         WHERE s.school_id = @schoolId
 

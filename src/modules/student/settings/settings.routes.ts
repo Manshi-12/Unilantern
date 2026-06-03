@@ -9,14 +9,12 @@ const repository = new SettingsRepository();
 const service = new SettingsService(repository);
 const controller = new SettingsController(service);
 
-// Publicly reachable but still requires JWT for student context
-router.use(verifyJWT);
-router.use(requireRole("student"));
+// Publicly reachable but still requires JWT for student context (applied per-route)
 
 /**
  * @route POST /api/v1/feedback
  */
-router.post("/feedback", auditLogger("submit_feedback"), controller.submitFeedback);
+router.post("/feedback", verifyJWT, requireRole("student"), auditLogger("submit_feedback"), controller.submitFeedback);
 
 /**
  * Account deletion is handled by account-deletion.routes.ts.

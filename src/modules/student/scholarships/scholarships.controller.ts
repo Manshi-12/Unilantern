@@ -36,6 +36,15 @@ export class ScholarshipsController {
     }
   };
 
+  listFlaggedScholarships = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const user = res.locals.user as { student_id: number };
+      sendSuccess(res, await this.scholarshipsService.listFlagged(user.student_id), HttpStatus.OK);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   saveScholarship = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const user = res.locals.user as { student_id: number };
