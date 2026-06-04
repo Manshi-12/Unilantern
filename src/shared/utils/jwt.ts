@@ -1,135 +1,53 @@
-import { SignJWT, jwtVerify, errors as joseErrors } from "jose";
-import type { JWTPayload } from "jose";
-import { env } from "../../config/env.js";
-import { PHONE_VERIFY_TOKEN_TTL_SECONDS } from "../../config/constants.js";
-import { AuthError } from "../errors/auth-error.js";
-import { AuthErrorCode } from "../response/error-codes.js";
+import jwt from 'jsonwebtoken';
+import { Response } from 'express';
+import { env } from '../../config/env';
 
-const secretKey = new TextEncoder().encode(env.JWT_SECRET);
-const ALG = "HS256";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SHARED PAYLOAD INTERFACE
-//
-// Both student and advisor tokens use this shape.
-//   - sub       : student_id (number as string) OR advisor_id (number as string)
-//   - role      : "student" | "advisor"
-//   - school_id : linked school (both user types can have one, null if none)
-//   - email     : ADVISOR ONLY — not present in student tokens
-// ─────────────────────────────────────────────────────────────────────────────
-export interface AccessTokenPayload {
-  sub: string;
-  role: string;
-  school_id?: number | null;
-  email?: string; // optional — only set for advisor tokens
+export interface JwtPayload {
+  sub: string;           // admin_id
+  role: 'school_admin';
+  school_id: number;
+  registration_status: string;
+  iat?: number;
+  exp?: number;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ACCESS TOKEN  (used by BOTH student and advisor)
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Sign ──────────────────────────────────────────────────────────────────────
 
-export async function signAccessToken(
-  payload: AccessTokenPayload,
-): Promise<string> {
-  return new SignJWT({
-    role: payload.role,
-    school_id: payload.school_id ?? null,
-    // Only embed email when it is explicitly provided (advisor path).
-    // Student tokens will never carry this claim.
-    ...(payload.email !== undefined && { email: payload.email }),
-  })
-    .setProtectedHeader({ alg: ALG })
-    .setSubject(payload.sub)
-    .setIssuedAt()
-    .setExpirationTime(env.JWT_ACCESS_TTL)
-    .sign(secretKey);
-}
+export const signAccessToken = (payload: Omit<JwtPayload, 'iat' | 'exp'>): string =>
+  jwt.sign(payload, env.JWT_SECRET, { expiresIn: '15m' });
 
-export async function verifyAccessToken(token: string): Promise<JWTPayload> {
-  try {
-    const { payload } = await jwtVerify(token, secretKey, { algorithms: [ALG] });
-    return payload;
-  } catch (err) {
-    if (err instanceof joseErrors.JWTExpired) {
-      throw new AuthError(AuthErrorCode.JWT_EXPIRED, "Access token expired");
-    }
-    throw new AuthError(AuthErrorCode.JWT_INVALID, "Invalid access token");
-  }
-}
+export const signRefreshToken = (payload: Omit<JwtPayload, 'iat' | 'exp'>): string =>
+  jwt.sign(payload, env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PHONE VERIFY TOKEN  (STUDENT ONLY — OTP / phone-based auth flow)
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Verify ─────────────────────────────────────────────────────────────────────
 
-const PHONE_VERIFY_TYP = "phone_verify" as const;
+export const verifyAccessToken = (token: string): JwtPayload =>
+  jwt.verify(token, env.JWT_SECRET) as JwtPayload;
 
-export async function signPhoneVerifyToken(
-  phone: string,
-  purpose: "signup" | "login",
-): Promise<string> {
-  return new SignJWT({
-    typ: PHONE_VERIFY_TYP,
-    purpose,
-  })
-    .setProtectedHeader({ alg: ALG })
-    .setSubject(phone)
-    .setIssuedAt()
-    .setExpirationTime(`${PHONE_VERIFY_TOKEN_TTL_SECONDS}s`)
-    .sign(secretKey);
-}
+export const verifyRefreshToken = (token: string): JwtPayload =>
+  jwt.verify(token, env.JWT_REFRESH_SECRET) as JwtPayload;
 
-export async function verifyPhoneVerifyToken(
-  token: string,
-): Promise<{ phone: string; purpose: "signup" | "login" }> {
-  try {
-    const { payload } = await jwtVerify(token, secretKey, { algorithms: [ALG] });
-    if (payload.typ !== PHONE_VERIFY_TYP) {
-      throw new AuthError(AuthErrorCode.TOKEN_INVALID, "Invalid phone verification token");
-    }
-    if (payload.purpose !== "signup" && payload.purpose !== "login") {
-      throw new AuthError(AuthErrorCode.TOKEN_INVALID, "Invalid phone verification token");
-    }
-    const sub = payload.sub;
-    if (!sub || typeof sub !== "string") {
-      throw new AuthError(AuthErrorCode.TOKEN_INVALID, "Invalid phone verification token");
-    }
-    return { phone: sub, purpose: payload.purpose };
-  } catch (err) {
-    if (err instanceof AuthError) throw err;
-    if (err instanceof joseErrors.JWTExpired) {
-      throw new AuthError(AuthErrorCode.JWT_EXPIRED, "Phone verification token expired", 401);
-    }
-    throw new AuthError(AuthErrorCode.TOKEN_INVALID, "Invalid phone verification token", 401);
-  }
-}
+// ── Cookie helpers ─────────────────────────────────────────────────────────────
 
-// ─────────────────────────────────────────────────────────────────────────────
-// REFRESH TOKEN  (ADVISOR ONLY — cookie-based session refresh)
-// ─────────────────────────────────────────────────────────────────────────────
+const COOKIE_BASE = {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'strict' as const,
+  path: '/',
+};
 
-export async function signRefreshToken(
-  payload: AccessTokenPayload,
-): Promise<string> {
-  return new SignJWT({
-    role: payload.role,
-    school_id: payload.school_id ?? null,
-    ...(payload.email !== undefined && { email: payload.email }),
-  })
-    .setProtectedHeader({ alg: ALG })
-    .setSubject(payload.sub)
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(secretKey);
-}
+export const setAuthCookies = (res: Response, accessToken: string, refreshToken: string): void => {
+  res.cookie('access_token', accessToken, {
+    ...COOKIE_BASE,
+    maxAge: 15 * 60 * 1000, // 15 min
+  });
+  res.cookie('refresh_token', refreshToken, {
+    ...COOKIE_BASE,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+};
 
-export async function verifyRefreshToken(token: string): Promise<JWTPayload> {
-  try {
-    const { payload } = await jwtVerify(token, secretKey, { algorithms: [ALG] });
-    return payload;
-  } catch (err) {
-    if (err instanceof joseErrors.JWTExpired) {
-      throw new AuthError(AuthErrorCode.JWT_EXPIRED, "Refresh token expired");
-    }
-    throw new AuthError(AuthErrorCode.JWT_INVALID, "Invalid refresh token");
-  }
-}
+export const clearAuthCookies = (res: Response): void => {
+  res.clearCookie('access_token', COOKIE_BASE);
+  res.clearCookie('refresh_token', COOKIE_BASE);
+};

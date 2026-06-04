@@ -1,9 +1,13 @@
-import crypto from "crypto";
+import crypto from 'crypto';
 
-export function generateRefreshToken(): string {
-  return crypto.randomBytes(32).toString("hex");
-}
+/** Returns a cryptographically random hex token of the specified byte length. */
+export const generateToken = (bytes = 32): string =>
+  crypto.randomBytes(bytes).toString('hex');
 
-export function hashRefreshToken(token: string): string {
-  return crypto.createHash("sha256").update(token).digest("hex");
-}
+/** Masks an email address — first char + *** + @domain */
+export const maskEmail = (email: string): string => {
+  const [local, domain] = email.split('@');
+  if (!domain) return email;
+  const masked = local.length <= 1 ? local : `${local[0]}***`;
+  return `${masked}@${domain}`;
+};
